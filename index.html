@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Giles test map</title>
+		<link rel="stylesheet" href="./css/choices.min.css?r=c">
+		<link rel="stylesheet" href="./css/stylesheet.css?r=c">
+		
+	</head>
+	
+	<body>
+		<div id="globeViz"></div>
+		<div id="fifoOuter">
+			<div id="fifo">
+		
+			</div>
+		</div>
+		
+		<div id="keyboard-holder">
+			<div class="simple-keyboard"></div>
+		</div>
+		<button class="restart">Restart</button>
+		<div id="qrHolder">
+			<img id="qr" alt="qr" />
+			<div id="qrBlurb">
+				<p>Get the journey on your phone!</p>
+				<p class="small">Scan the QR code for a mobile summary.</p>
+			</div>
+			
+		</div>
+		<div id="panels">
+			<div class="panel" id="p_home">
+				<div class="mainInner">
+			      <div class="centrePanel">
+			        <h1>Families of Scotland</h1>
+			        <h2>A portal to Scottish ancestry.</h2>
+			        <button data-id="where" class="btnNextPanel">Start</button>
+			      </div>
+			    </div>
+			</div>
+			<div class="panel" id="p_where">
+				
+			      <div class="topPanel">
+			        <h2>Where are you from?</h2>
+			        <h3>We get visitors from all around the globe. What country are you from?</h3>
+			      </div>
+			      <div class="bottomPanel">
+			        <div class="origin">
+			        	<input placeholder="Start typing your country..." autocomplete="off" id="countrySearch" type="text" />
+			        	<button data-id="name" class="btnNextPanel">Skip</button>
+			        	<div id="countryResults"></div>
+			        </div>
+			       
+			        
+			      </div>
+			    
+			</div>
+			<div class="panel" id="p_name">
+				
+					<div class="topPanel">
+				        <h1>Scottish Ancestry?</h1>
+	       				<h2>Start typing the surname you wish to search for, then tap to select it from the list.</h2>
+	       			</div>
+	       			<div class="bottomPanel">
+				        <div class="nameOuter">
+				        	<input placeholder="Start typing, then tap the right result..." autocomplete="off" id="searchName" type="text" />
+				        	<div id="searchResults"></div>
+				        </div>
+			        </div>
+			      
+			    
+			</div>
+			<div class="panel" id="p_interstitial">
+				<div class="mainInner">
+			        <div class="centrePanel">
+			          <h3><img src="./images/nrslogo.png" alt="NRS logo" /></h3>
+			          <h2><span class="ph_num_records"></span> records located for <div class="ph_surname"></div>
+			  				in the National Records of Scotland database.</h2>
+				          <div class="progressBar">
+				            <div class="progressBarInner"></div>
+				          </div>
+			          
+			          
+			        </div>
+			      </div>
+			</div>
+			<div class="panel" id="p_insufficient">
+				<div class="mainInner">
+			        <div class="centrePanel" id="insufficient_inner">
+			          
+			        </div>
+			      </div>
+			</div>
+		</div>
+
+		<div id="tlOuter">
+			<div id="tl">
+				<div id="tlStrip">
+					
+				</div>
+				<div id="tlPointer">&#9651;</div>
+				<div id="tlConnector"></div>
+			</div>
+		</div>
+		<div id="inset">
+			<!-- <p><span class="surname"></span> Population density</p> -->
+			<div id="insetInner">
+				<div id="insetOverlay"><div id="insetMarker"></div></div>
+				<img src="images/inset_map.png" />
+				<!-- <p class="small">Est. national total <span id="population"></span></p> -->
+			</div>
+			
+		</div>
+		<div id="mapHolder"></div>
+
+		<!-- <div id="logo"><img src="./images/WhitLogo.png"/></div> -->
+		<div id="compassHolder">
+			<div id="compass"><img src="./images/compass.png"/></div>
+		</div>
+		
+		<div id="loading">Loading...</div>
+
+		<div id="stats">
+			<div id="popTitle">Estimated number of <span class="ph_surname_plural"></span> in <span id="continuousYear"></span></div>
+			<div id="population"></div>
+			<!-- <div class="statRow">
+				<div class="statLabel">Births</div><div class="stat" id="births">10</div>
+			</div>
+			<div class="statRow">
+				<div class="statLabel">Deaths</div><div class="stat" id="deaths"></div>
+			</div>
+			<div class="statRow">
+				<div class="statLabel">Marriages</div><div class="stat" id="marriages"></div>
+			</div>
+			-->
+		</div>
+
+		
+
+		
+		<div id="descriptionHolder">
+			<div id="ribbon">
+				<div id="ribbonInner">
+					<div class="ph_surname"></div>
+				</div>
+			</div>
+			<div id="descriptionInner">
+				<p id="description"></p>
+				<p id="historical"></p>
+			</div>
+		</div>
+		<div id="nav">
+			<div id="back">Back</div>
+			<div id="next">Next</div>
+		</div>
+		
+		<div id="begin">Begin</div>
+
+
+		<script src="./js/jquery-3.7.1.min.js"></script>
+		<script src="./js/gsap.min.js"></script>
+		<script src="./js/turf.min.js"></script>
+		<script type="module" src="./main.js"></script>
+	</body>
+</html>

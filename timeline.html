@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Giles test map</title>
+		<link rel="stylesheet" href="./css/choices.min.css?r=c">
+		<link rel="stylesheet" href="./css/stylesheet.css?r=c">
+		
+	</head>
+	
+	<body>
+		
+		<div id="globeViz" style="width:500px;height:500px"></div>
+		<div id="tlOuter">
+			<div id="tl">
+				<div id="tlStrip">
+					
+				</div>
+				<div id="tlPointer">&#9651;</div>
+				<div id="tlConnector"></div>
+			</div>
+		</div>
+		
+
+
+		<script src="./js/jquery-3.7.1.min.js"></script>
+		<script src="./js/gsap.min.js"></script>
+		<script type="module" src="./modules/timelineTest.js"></script>
+
+		<script type="module">
+			import Globe from 'globe.gl';
+			import { MeshLambertMaterial, DoubleSide} from 'three';
+    		import * as topojson from 'https://esm.sh/topojson-client';
+			
+			console.log('grep');
+			
+
+
+			const center = { lat: 56.49, lon: -4.10 };
+			 // Gen random data
+			 const N = 20;
+			    const arcsData = [...Array(N).keys()].map(() => ({
+			      startLat: center.lat,
+			      startLng: center.lon,
+			      endLat: (Math.random() - 0.5) * 180,
+			      endLng: (Math.random() - 0.5) * 360,
+			      color: 'darkgrey'
+			    }));
+
+
+			    console.log('arcsdata', arcsData);
+
+		    const g = new Globe(document.getElementById('globeViz'))
+		      // .globeImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-day.jpg')
+				    
+		      .arcsData(arcsData)
+		      .arcColor('color')
+		      .arcStroke(0.15)
+      .backgroundColor('rgba(0,0,0,0)')
+      .showAtmosphere(false)
+		      .arcDashLength(() => Math.random())
+		      .arcDashGap(() => Math.random())
+		      .arcDashAnimateTime(() => Math.random() * 4000 + 500)
+		      .pointOfView({ lat: center.lat - 12, lng: center.lon, altitude: 1 }, 1000);
+
+
+    fetch('./js/land-110m.json').then(res => res.json())
+      .then(landTopo => {
+        g
+          .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
+          .polygonCapMaterial(new MeshLambertMaterial({ color: 'grey', side: DoubleSide }))
+          .polygonSideColor(() => 'rgba(255,0,0,0)')
+          .polygonAltitude(0.0075)
+          .polygonsTransitionDuration(0)
+      });
+
+		</script>
+	</body>
+</html>

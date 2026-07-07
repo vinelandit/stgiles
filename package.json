@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "choices.js": "^11.0.3",
+    "globe.gl": "^2.45.3",
+    "qrcode": "^1.5.4",
+    "simple-keyboard": "^3.8.31",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.1"
+  }
+}
