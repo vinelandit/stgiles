@@ -21,66 +21,8 @@
 		<script src="./js/gsap.min.js"></script>
 
 		<script type="module">
-			const fifo = {
-
-				tpl: `<div class="fifoRow" data-index="{index}">{surname}, {origin}</div>`,
-				target: '#fifo',
-				rowsVisible: 5,
-				rowHeight: 30,
-				currentRow: 0,
-
-				data: [
-						{ surname: 'BALLAST', origin: 'Montana (USA)'},
-						{ surname: 'GRONK', origin: 'Great Britain'},
-						{ surname: 'SULLY', origin: 'Japan'},
-						{ surname: 'EIWEISS', origin: 'Australia'},
-						{ surname: 'BIGOT', origin: 'Indonesia'},
-						{ surname: 'LUMPO', origin: 'Ireland'},
-						{ surname: 'HIPPO', origin: 'Mexico'},
-						{ surname: 'CALABASH', origin: 'Lithuania'},
-				],
-
-				init: function() {
-
-					let html = '';
-					let row = '';
-
-					for(var i in this.data) {
-						row = this.tpl.replace('{index}', i);
-						row = row.replace('{surname}', this.data[i].surname);
-						row = row.replace('{origin}', this.data[i].origin);
-
-						html += row;
-					}
-
-					$(this.target).html(html);
-
-					this.increment();
-				},
-
-				increment: function() {
-
-					const _this = this;
-					$('.fifoRow:eq(1)').addClass('focused');
-					gsap.to(this.target, {
-						y: -this.rowHeight,
-						duration: 0.3,
-						onComplete: function() {
-							// cycle top row
-							$(_this.target + ' .fifoRow').eq(0).appendTo(_this.target).removeClass('focused');
-
-							gsap.set(_this.target, {
-								y: 0
-							});
-						}
-					});
-					window.setTimeout(function() {
-						_this.increment();
-					}, 1000);
-				},
-
-			}
-
+		
+	
 			fifo.init();
 		</script>
 	</body>
