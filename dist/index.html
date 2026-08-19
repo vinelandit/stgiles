@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Giles test map</title>
+		<link rel="stylesheet" href="./css/choices.min.css?r=c">
+		
+		<script type="module" crossorigin src="./assets/main-CckSINiB.js"></script>
+		<link rel="modulepreload" crossorigin href="./assets/ui-BOgU7RgJ.js">
+		<link rel="stylesheet" crossorigin href="./assets/ui-DUKkBn_4.css">
+	</head>
+	
+	<body>
+		<!-- <div id="debug">
+			<input id="x1" value="20" placeholder="x1">
+			<input id="x2" value="18" placeholder="x2">
+		</div> -->
+		<div id="overviewTitle">
+			Overview of records <span class="ph_first_year"></span> - 1900<br/>with key locations
+		</div>
+		<div id="overviewFrame">
+			<h4 class="continuousYear"></h4>
+			<div id="ofTitle">Estimated number of <span class="ph_surname_plural"></span> at this time <div class="population"></div></div>
+		</div>
+		<div id="backgroundFill"></div>
+		<div id="mapHeading">
+			<div id="mapHeadingInner">Families of Scotland</div>
+		</div>
+		<div id="bigName">
+			<div id="origins">
+				<div id="originsInner"></div>
+			</div>
+			<svg viewBox="0 0 630 120" xmlns="http://www.w3.org/2000/svg">
+			  
+			  <defs>
+			  <path
+			    id="MyPath"
+			    fill="none"
+			    stroke="red"
+			    d="M20,70 C244.5,1 438.5,170 600.5,65" />
+			  </defs>
+
+			  <text text-anchor="middle" style="font-size:60px">
+			    <textPath class="ph_surname" startOffset="50%" href="#MyPath"></textPath>
+			  </text>
+			</svg> 
+		</div>
+		<div id="globeViz"></div>
+		
+		
+		<div id="keyboard-holder">
+			<div class="simple-keyboard"></div>
+		</div>
+		<div id="restartHolder"><button class="restart">Restart</button></div>
+		<button class="overview">Jump to Overview</button>
+		<div id="qrHolder">
+			<div id="qrBlurb">
+				<p>Free digital souvenir</p>
+				<!-- <p class="small">Scan the QR code for a mobile summary.</p> -->
+			</div>
+			<img id="qr" alt="qr" />
+			
+		</div>
+		<div id="panels">
+			<div class="panel" id="p_home">
+				
+		       <div class="topPanel">
+		       		<img id="stgiles_logo" src="images/stgiles_logo.png" />
+		       		<h1><img src="images/title.png" /></h1>
+		        	<h2>A portal to Scottish ancestry</h2>
+		       </div>
+
+		       	<div class="centrePanel">
+		       		<div id="fifoOuter">
+						<div id="fifoHolder">
+							<div id="fifo">
+					
+							</div>
+						</div>
+					</div>
+					<h3>Enter family name to explore</h3>
+		        	<button data-id="name" class="btnNextPanel">Start</button>
+		    	</div>
+			      
+			   
+			</div>
+			<div class="panel" id="p_name">
+				
+					<div class="topPanel">
+				        <h1>Scottish Ancestry?</h1>
+	       				<h2>Start typing the surname you wish to search for, then tap to select it from the list.</h2>
+	       			</div>
+	       			<div class="bottomPanel">
+				        <div class="nameOuter">
+				        	<input placeholder="Start typing, then tap the right result..." autocomplete="off" id="searchName" type="text" />
+				        	<div id="searchResults"></div>
+				        </div>
+			        </div>
+			      
+			    
+			</div>
+			
+			<div class="panel" id="p_where">
+				
+			      <div class="topPanel">
+			        <h2><span class="ph_surname"></span>s are spread far and wide</h2>
+			        
+			      </div>
+			      <div class="bottomPanel">
+			      	<h3>We get visitors from all around the globe. What country are you from?</h3>
+			        <div class="origin">
+			        	<input placeholder="Start typing your country..." autocomplete="off" id="countrySearch" type="text" />
+			        	<button data-id="interstitial" class="btnNextPanel">Skip</button>
+			        	<div id="countryResults"></div>
+			        </div>
+			       
+			        
+			      </div>
+			    
+			</div>
+			
+			<div class="panel" id="p_interstitial">
+				<div class="mainInner">
+			        <div class="centrePanel">
+			          <h3><img src="./images/nrslogo.png" alt="NRS logo" /></h3>
+			          <h2><span class="ph_num_records"></span> records located for <div class="ph_surname"></div>
+			  				in the National Records of Scotland database.</h2>
+				          <div class="progressBar">
+				            <div class="progressBarInner"></div>
+				          </div>
+			          
+			          
+			        </div>
+			      </div>
+			</div>
+			<div class="panel" id="p_insufficient">
+				<div class="mainInner">
+			        <div class="centrePanel" id="insufficient_inner">
+			          
+			        </div>
+			      </div>
+			</div>
+		</div>
+		<div id="tlYear" class="continuousYear"></div>
+		<div id="tlOuter">
+			
+			<div id="tl">
+				<div id="tlStrip">
+					
+				</div>
+				<div id="tlPointer">&#9651;</div>
+				<div id="tlConnector"></div>
+			</div>
+		</div>
+		<div id="inset">
+			<div id="popTitle">Estimated number of <span class="ph_surname_plural"></span> at this time <div class="population"></div></div>
+			
+			<!-- <p><span class="surname"></span> Population density</p> -->
+			<div id="insetInner">
+				<div id="insetOverlay"><div id="insetMarker"></div></div>
+				<img src="images/inset_map.png" />
+				<!-- <p class="small">Est. national total <span id="population"></span></p> -->
+			</div>
+			
+		</div>
+		<div id="mapHolder"></div>
+
+		<!-- <div id="logo"><img src="./images/WhitLogo.png"/></div> -->
+		<div id="compassHolder">
+			<div id="compass"><img src="./images/compass.png"/></div>
+		</div>
+		
+		<div id="loading">Loading...</div>
+
+		
+
+
+		<div id="ribbon">
+			<div id="ribbonInner">
+				<div class="ph_surname">WILBERFORCE</div>
+			</div>
+		</div>
+		
+		<div id="frame">
+			<div id="frameInner">
+				
+			</div>
+		</div>
+		
+		<div id="additional">
+			<div id="additionalInner">
+				<img id="nrs_logo" src="images/nrs_logo.png" />
+				<p>This experience is based on records of births, deaths and marriages from the Old Parish Registers up to 1855 and civil registration thereafter.</p>
+				<p>The dataset was provided by the National Records of Scotland.</p>
+			</div>
+		</div>
+		
+		
+		<div id="descriptionHolder">
+			
+			<div id="descriptionInner">
+				<p id="description"></p>
+				<p id="historical"></p>
+			</div>
+		</div>
+
+		<div id="navOverview">
+			<div class="back">Back</div>
+			<button class="restartOverview">Restart</button>
+		</div>
+
+		<div id="nav">
+			<div class="back">Back</div>
+			<div class="next">Next</div>
+		</div>
+		
+		<div id="begin">Begin</div>
+
+
+		<script src="./js/jquery-3.7.1.min.js"></script>
+		<script src="./js/gsap.min.js"></script>
+		<script src="./js/turf.min.js"></script>
+	</body>
+</html>

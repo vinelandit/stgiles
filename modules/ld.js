@@ -9,15 +9,15 @@ const ld = [
   {
     "name": "Edinburgh",
     "pop": "464,990",
-    "lat": 55.9519018,
-    "lon": -3.1904199,
+    "lat": 55.899864196777344,
+    "lon": -3.0929973125457764,
     "type": "town"
   },
   {
     "name": "Aberdeen",
     "pop": "196,670",
-    "lat": 57.185949550000004,
-    "lon": -2.087979698652016,
+    "lat": 57.14265060424805,
+    "lon": -2.0976345539093018,
     "type": "town"
   },
   {
@@ -97,6 +97,7 @@ const ld = [
     "lon": -4.225739,
     "type": "town"
   },
+  /*
   {
     "name": "Kilmarnock",
     "pop": "46,350",
@@ -104,6 +105,7 @@ const ld = [
     "lon": -4.4964652,
     "type": "town"
   },
+  */
   {
     "name": "Coatbridge",
     "pop": "43,970",
@@ -111,6 +113,7 @@ const ld = [
     "lon": -4.0273166,
     "type": "town"
   },
+
   {
     "name": "Greenock",
     "pop": "43,690",
@@ -161,6 +164,7 @@ const ld = [
     "lon": -3.6044458,
     "type": "town"
   },
+  /*
   {
     "name": "Motherwell",
     "pop": "32,120",
@@ -168,6 +172,7 @@ const ld = [
     "lon": -3.9920191,
     "type": "town"
   },
+  */
   /*
   {
     "name": "Rutherglen",
@@ -184,6 +189,7 @@ const ld = [
     "lon": -2.5815669,
     "type": "town"
   },
+  /*
   {
     "name": "Musselburgh",
     "pop": "23,620",
@@ -191,6 +197,7 @@ const ld = [
     "lon": -3.0538516,
     "type": "town"
   },
+  */
   {
     "name": "Elgin",
     "pop": "22,980",
@@ -205,6 +212,7 @@ const ld = [
     "lon": -4.3888761,
     "type": "town"
   },
+  /*
   {
     "name": "Alloa",
     "pop": "20,390",
@@ -212,6 +220,7 @@ const ld = [
     "lon": -3.7922423,
     "type": "town"
   },
+  */
   {
     "name": "Dumbarton",
     "pop": "19,950",
@@ -240,13 +249,14 @@ const ld = [
     "lon": -4.663906,
     "type": "town"
   },
-  {
+  /* {
     "name": "Linlithgow",
     "pop": "13,360",
     "lat": 55.977167,
     "lon": -3.6006234,
     "type": "town"
   },
+  */
   {
     "name": "Fraserburgh",
     "pop": "13,140",
@@ -345,6 +355,7 @@ const ld = [
     "lon": -3.520577,
     "type": "town"
   },
+  /*
   {
     "name": "Brechin",
     "pop": "7,520",
@@ -352,6 +363,7 @@ const ld = [
     "lon": -2.6600193,
     "type": "town"
   },
+  */
   {
     "name": "Kirkwall",
     "pop": "7,150",

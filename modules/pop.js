@@ -3,11 +3,10 @@ import decadeTotals from './decadeTotals.js';
 
 export default  {
 	
-	init: function(id, apiRoot, loadCallback = false) {
+	init: function(id, dataRoot, loadCallback = false) {
 		const _this = this;
-		this.apiRoot = apiRoot;
-		const url = this.apiRoot + "/data/surnames/data" + id + ".json";
-		console.log(url);
+		this.dataRoot = dataRoot;
+		const url = this.dataRoot + "/data/surnames/data" + id + ".json";
 		
 		const d = $.get(url, function(data) {
 			_this.data = data;
@@ -17,7 +16,7 @@ export default  {
 		});
 
 	},
-	
+
 	population: function(year) {
 		
 		if(year == 1900) {

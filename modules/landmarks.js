@@ -9,12 +9,16 @@ const landmarks = {
 
 	init: function(scene, camera, project) {
 
+		const _this = this;
+
 		this.project = project; // pre-initialised map projection module
 
 		this.camera = camera;
 		this.scene = scene;
+		this.x1 = 16;
+		this.x2 = 12;
 		this.labelRenderer = new CSS2DRenderer();
-		this.labelRenderer.setSize( window.innerWidth, (window.innerHeight + 200));
+		this.labelRenderer.setSize( window.innerWidth, (window.innerHeight)); // + 200
 		this.labelRenderer.domElement.style.position = 'absolute';
 		this.labelRenderer.domElement.style['pointer-events'] = 'none';
 
@@ -32,6 +36,14 @@ const landmarks = {
 		const label = document.createElement('label');
 		label.className = 'landmark';
 		label.classList.add('parish');
+
+		const v = document.createElement('video');
+		v.src = 'videos/flag_loop.webm';
+		v.loop = true;
+		v.autoplay = true;
+		v.muted = true;
+		v.controls = false;
+		label.appendChild(v);
 
 		const span = document.createElement('span');
 		span.textContent = 'PENDING';
@@ -59,11 +71,14 @@ const landmarks = {
 			const pin = new THREE.Group();
 			const xy = this.project.ll2xy(ld[i].lat, ld[i].lon);
 
+			xy[1] += this.project.options.mapCentreOffsetY;
+
 			pin.position.set(xy[0], 0, xy[1]);
 			scene.add(pin);
 			
 			const label = document.createElement('label');
 			label.className = 'landmark';
+			label.id = 'landmark' + i;
 
 			const pop = parseInt(ld[i].pop.replace(',', ''));
 			if(pop > 100000) {
@@ -80,10 +95,12 @@ const landmarks = {
 			span.textContent = ld[i].name;
 			label.appendChild(span);
 			const label3 = new CSS2DObject(label);
-			label3.position.set(0, 0.2, 0);
+			label3.position.set(0, 0.0, 0);
 			label3.center.set(0, 0);
 			pin.add(label3);
 
+			
+			/*
 			const buf = new THREE.BufferGeometry();
 			const mat = new THREE.LineBasicMaterial( { vertexColors: false, color: new THREE.Color(0x000000), transparent: true } );
 			const positions = [
@@ -94,18 +111,26 @@ const landmarks = {
 			buf.setFromPoints(positions);
 			const line = new THREE.Line(buf, mat);
 			pin.add(line);
+			*/
 			pin.renderOrder = -100000;
 
 			this.data.push({
 				pin: pin,
 				label: label,
-				label3: label3,
-				mat: mat
+				label3: label3
 			});
 
 			
 			
 		}
+
+		$('#x1').change(function() {
+			_this.x1 = $(this).val();
+		});
+
+		$('#x2').change(function() {
+			_this.x2 = $(this).val();
+		});
 		
 	},
 
@@ -113,7 +138,7 @@ const landmarks = {
 		for(var i in ld) {
 			const dist = this.dist(lat, lon, ld[i].lat, ld[i].lon);
 			if(dist < limit) {
-				return [dist, ld[i] ];
+				return [dist, ld[i], i ];
 			}
 		}
 		return -1;
@@ -156,10 +181,10 @@ const landmarks = {
 		this.labelRenderer.render( scene, camera );
 
 		for(var i = 0; i < this.data.length; i++) {
-			const d = camera.position.distanceTo(this.data[i].pin.position);
-			const opacity = this.smoothstep(10, 5, d);
+			const d = 2 + camera.position.distanceTo(this.data[i].pin.position);
+			const opacity = this.smoothstep(this.x1, this.x2, d);
 			this.data[i].label.style.opacity = opacity;
-			this.data[i].mat.opacity = opacity;
+			// this.data[i].mat.opacity = opacity;
 		}
 		
 	

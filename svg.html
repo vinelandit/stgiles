@@ -1,0 +1,81 @@
+<html>
+<head><title>SVG TEST</title>
+</head>
+<body>
+<svg style="width:1080px;height:1080px;background-color:red" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    div {
+      color: black;
+      background-color:white;
+      font: 18px serif;
+      height: 20px;
+      overflow:visible;
+      text-align:center;
+      width:400px;
+      position:relative;
+      top:50%;
+      animation: counterrotate 5s linear infinite;
+
+    }
+    path {
+      stroke-width: 3px;
+      stroke:white;
+    }
+    g#rotate {
+      transform-origin: 50% 50%;
+      transform:rotate(160deg);
+      animation: rotate 5s linear infinite;
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes counterrotate {
+      from {
+        transform: translateY(-50%) rotate(0);
+      }
+
+      to {
+        transform: translateY(-50%) rotate(-360deg);
+      }
+    }
+
+
+  </style>
+
+  <g id="rotate">
+  <path d="M 540 540 L 200 200" />
+  <path d="M 540 540 L 700 800" />
+
+  <!-- Common use case: embed HTML text into SVG -->
+  <foreignObject x="0" y="0" width="400" height="400">
+    <!--
+      In the context of SVG embedded in an HTML document, the XHTML
+      namespace could be omitted, but it is mandatory in the
+      context of an SVG document
+    -->
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      AUSTRALIA
+    </div>
+  </foreignObject>
+  <foreignObject x="500" y="600" width="400" height="400">
+    <!--
+      In the context of SVG embedded in an HTML document, the XHTML
+      namespace could be omitted, but it is mandatory in the
+      context of an SVG document
+    -->
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      LUMPUR
+    </div>
+  </foreignObject>
+  </g>
+</svg>
+</body>
+</html>

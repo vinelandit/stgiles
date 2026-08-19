@@ -3,12 +3,14 @@ const fifo = {
 	tpl: `<div class="fifoRow" data-index="{index}">{surname}, {origin}</div>`,
 	target: '#fifo',
 	rowsVisible: 5,
-	rowHeight: 30,
+	rowHeight: 25,
 
 	init: function(data, reinit = false) {
 
 		let html = '';
 		let row = '';
+
+		this.initState = true;
 
 		for(var i in data) {
 			row = this.tpl.replace('{index}', i);
@@ -19,24 +21,38 @@ const fifo = {
 		}
 
 		$(this.target).html(html);
-		$('.fifoRow:eq(0)').addClass('focused');
 
+		gsap.set(this.target, {
+			y: 0
+		});
+		$('.fifoRow:eq(2)').addClass('focused');
+		
+		
 	},
 
 	increment: function() {
 
 		const _this = this;
-		$('.fifoRow:eq(1)').addClass('focused');
+
+		if(this.initState) {
+			this.initState = false;
+			return true;
+		}
+		$('.fifoRow:eq(3)').addClass('focused');
+		$(_this.target + ' .fifoRow:eq(2)').removeClass('focused');
 		gsap.to(this.target, {
 			y: -this.rowHeight,
-			duration: 0.3,
+			duration: 0.8,
 			onComplete: function() {
 				// cycle top row
-				$(_this.target + ' .fifoRow').eq(0).appendTo(_this.target).removeClass('focused');
-
+				
+				
+				$(_this.target + ' .fifoRow:eq(0)').appendTo(_this.target);
 				gsap.set(_this.target, {
 					y: 0
 				});
+
+
 			}
 		});
 	},

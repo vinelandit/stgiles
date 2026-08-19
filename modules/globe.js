@@ -1,19 +1,27 @@
 import Globe from 'globe.gl';
 import { fifo } from './fifo.js';
 import * as THREE from 'three';
-import * as topojson from 'https://esm.sh/topojson-client';
+import * as topojson from 'topojson-client';
+
 
 const globe = {
 	
 	center: { lat: 56.49, lon: -4.10 },
-	curIndex: 0,
 	anim: null,
 
 	init: function(data, reinit = false) {
 
-		console.log('init globe');
-
+    	console.log('init globe');
+		data = data.slice(0, 6 - data.length);
+		
+		this.animating = false;
+		this.curIndex = 2;
 		this.materialsInitialised = false;
+
+		// shuffle data first
+		data.push(data.shift());
+		data.push(data.shift());
+		data.push(data.shift());
 
 		fifo.init(data, reinit);
 
@@ -28,14 +36,14 @@ const globe = {
 
 		for(var i in data) {
 			if(typeof this.originToArc[data[i].origin] == 'undefined') {
-				console.log('fuck adding', data[i].origin);
 				this.arcsData.push({
 					startLat: this.center.lat,
 					startLng: this.center.lon,
 					endLat: parseFloat(data[i].lat),
 					endLng: parseFloat(data[i].lon),
 					length: this.distance(this.center.lat, this.center.lon, parseFloat(data[i].lat), parseFloat(data[i].lon)),
-					color: 'red'
+					color: '#aa7f26',
+					stroke: 0.75
 				});
 
 				this.originToArc[data[i].origin] = this.arcsData.length - 1;
@@ -43,48 +51,124 @@ const globe = {
 			
 		}
 
-		console.log(this.arcsData, this.originToArc);
-	  
+		// console.log(this.arcsData, this.originToArc);
+	  	
 		if(reinit) {
 			this.g.arcsData(this.arcsData);
-			this.curIndex = 0;
-			window.clearTimeout(this.anim);
+			this.curIndex = 2;
 		} else {
-			this.g = new Globe(document.getElementById('globeViz'))
-	  		      // .globeImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-day.jpg')    
-	    .arcsData(this.arcsData)
-	    .arcColor('color')
-	    .arcStroke(0.35)
-			.backgroundColor('rgba(0,0,0,0)')
-			.showAtmosphere(false)
-	    .arcDashLength((arc) => { return 0.05 / arc.length; })
-	    .arcDashGap((arc) => { return 0.05 / arc.length })
-	    .arcDashAnimateTime((arc) => { return 5000 * arc.length })
-	    .pointOfView({ lat: this.center.lat - 12, lng: this.center.lon, altitude: 1 }, 0);
+			this.g = new Globe(document.getElementById('globeVizInner'))
+	  		    .globeImageUrl('./images/globe-placeholder.jpg') 
+	  		    // .globeImageUrl('./images/earth_equi_hires.jpg')    
+			    .arcsData(this.arcsData)
+			    .arcColor('color')
+			    .arcStroke((arc) => { return arc.stroke } )
+				.backgroundColor('rgba(0,0,0,0)')
+				.showAtmosphere(false)
+			    .arcDashLength((arc) => { return 0.02 / arc.length; })
+			    .arcDashGap((arc) => { return 0.01 / arc.length })
+			    .arcDashAnimateTime((arc) => { return 10000 * arc.length })
+			    .pointOfView({ lat: this.center.lat - 12, lng: this.center.lon, altitude: 2 }, 0);
+
+			const atGeo = new THREE.SphereGeometry(this.g.getGlobeRadius() + 0.3, 128, 64);
+			this.atMat = new THREE.MeshNormalMaterial({
+				transparent: true,
+				opacity: 1.0
+			});
+			// customising atmosphere shader
+	
+			this.atMat.onBeforeCompile = function ( shader ) {
+				shader.fragmentShader = shader.fragmentShader.replace(
+					`gl_FragColor = vec4( normalize( normal ) * 0.5 + 0.5, diffuseColor.a );`,
+					`vec3 nn = (normal); 
+					 float grad = clamp(-0.5 + 2.0 * pow(1.0 - nn.z, 0.75), 0.0, 1.0);
+
+					 gl_FragColor = vec4( vec3(42.0, 94.0, 100.0) / 255., grad * diffuseColor.a );`
+					)
+				_this.atMat.needsUpdate = true;
+				
+			}	
+			this.atmosphere = new THREE.Mesh(atGeo, this.atMat);
+
+			this.g.scene().add(this.atmosphere);
+
+			this.g.renderer().premultipliedAlpha = true;
+
+		} 
+	
+	  	
+		window.setTimeout(function(){
+	    	_this.initMaterials(reinit);
+	    	_this.show();
+	    }, 100);
+	    
+	},
+
+	hide: function() {
+        this.pauseAnimation();
+        gsap.to('#globeViz', {
+            opacity: 0,
+            duration: 0.2,
+            onComplete: function() {
+                gsap.set('#globeViz', {
+                    display: 'none'
+                });
+            }
+        });
+    },
+
+    show: function() {
+        this.resumeAnimation();
+        this.g.resumeAnimation();
+        this.animating = true;
+        gsap.set('#globeViz', {
+            display: 'block',
+            opacity: 0
+        });
+        gsap.to('#globeViz', {
+            opacity: 1,
+            duration: 0.2
+        });
+    },
+
+    focus: function() {
+    	this.animating = false;
+    	window.clearInterval(this.animDaemon);
+		delete this.animDaemon;
+		this.g.pointOfView({ lat: -30 + this.center.lat, lng: this.center.lon, altitude: 1.75 }, 2000);
+
+		// slide globe up
+		gsap.to([this.atmosphere.position, this.g.scene().children[4].position], {
+			y: -30,
+			duration: 2,
+			ease: 'power1.inOut'
+		});
 
 
-	    fetch('./js/land-110m.json').then(res => res.json())
-	      .then(landTopo => {
-	        _this.g
-	          .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
-	          .polygonCapMaterial(new THREE.MeshLambertMaterial({ color: 'grey', side: THREE.DoubleSide }))
-	          .polygonSideColor(() => 'rgba(255,0,0,0)')
-	          .polygonAltitude(0.0075)
-	          .polygonsTransitionDuration(0);
-
-
-	      });
-
+		for(let i = 0; i < this.arcsData.length; i++) {
+			gsap.to(this.arcsData[i].__threeObjArc.children[0].material.uniforms.alpha, { 
+				value: 0.0,
+				duration: 1
+			});
 		}
-	  
+		
+    },
 
+	pauseAnimation: function() {
+		console.log('pausing globe animation');
+		this.g.pauseAnimation();
+		this.animating = false;
+		window.clearInterval(this.animDaemon);
+		delete this.animDaemon;
+	},
 
-    // start animation
-    this.anim = window.setTimeout(function(){
-    	_this.animate();
-    }, 1);
-
-
+	resumeAnimation: function() {
+		
+		if(!this.animating) {
+			this.g.resumeAnimation();
+			this.animating = true;	
+		}
+		
 	},
 
 	distance(lat1,lon1,lat2,lon2) {
@@ -105,15 +189,20 @@ const globe = {
 	  return deg * (Math.PI/180);
 	},
 
-	initMaterials: function() {
+	initMaterials: function(reinit) {
+
+		const _this = this;
+
 		const a = this.g.arcsData();
-	
+		
+
 		for(var i = 0; i < a.length; i++) {
 			const mat = a[i].__threeObjArc.children[0].material;
+			// mat.transparent = true;
 			if(!mat.userData.hacked) {
-				console.log('not hacked, hacking', i);
+
 				mat.customProgramCacheKey = function () {	
-						return i + ' ' + Date.now();
+					return i + ' ' + Date.now();
 				};
 
 				mat.needsUpdate = true;
@@ -124,30 +213,48 @@ const globe = {
 					shader.fragmentShader = 'uniform float alpha;\n' + shader.fragmentShader;
 					shader.fragmentShader = shader.fragmentShader.replace(
 						'gl_FragColor = vColor;',
-						'gl_FragColor = vColor * alpha;');
+						'gl_FragColor = vColor; gl_FragColor *= vec4(1.0, 1.0, 1.0, alpha);');
 
 					mat.userData.shader = shader;
 					
 				};
 
 				mat.userData.hacked = true;
-			} else {
-				console.log('already hacked', i);
-			}
+			} 
 		}
 		
 		this.materialsInitialised = true;
+		this.animating = true;
+
+
+
+		// restore globe to centre
+		this.atmosphere.position.y = 0;
+		this.g.scene().children[4].position.y = 0;
+
+		// start animation
+		window.setTimeout(function() {
+			_this.animate();
+			if(typeof _this.animDaemon == 'undefined') {
+		    	_this.animDaemon = window.setInterval(function(){
+		    		
+		    		_this.animate();
+		    	}, 3000);
+		    }
+		}, 500);
+
+
+
 	},
 
 	animate: function() {
-		const _this = this;
-		if(!this.materialsInitialised) {
-			this.initMaterials();
-			this.anim = window.setTimeout(function() {		
-				_this.animate();
-			}, 0);
-			return true;
+		
+		if(!this.animating) {
+			return false;
+
 		}
+		const _this = this;
+		
 		// go to data el, then iterate
 
 		let prevIndex = this.curIndex - 1;
@@ -158,34 +265,29 @@ const globe = {
 		const prevArcIndex = this.originToArc[ this.data[prevIndex].origin ];
 		const arcIndex = this.originToArc[ this.data[this.curIndex].origin ];
 
-
-		console.log('current origin', this.data[this.curIndex].origin, arcIndex);
-		console.log('prev index', prevArcIndex);
-
+		
 		gsap.to(this.arcsData[arcIndex].__threeObjArc.children[0].material.uniforms.alpha, {
 			value: 1,
-			duration: 0.5
+			duration: 1
 		});
 
 		if(prevArcIndex != arcIndex) {
 			gsap.to(this.arcsData[prevArcIndex].__threeObjArc.children[0].material.uniforms.alpha, { 
-				value: 0.2,
-				duration: 0.5
+				value: 0.1,
+				duration: 1
 			});
 		}
-		
 
-		this.g.pointOfView({ lat: this.data[this.curIndex].lat, lng: this.data[this.curIndex].lon, altitude: 1 }, 1000);
+		this.g.pointOfView({ lat: 5 + 0.2 * this.data[this.curIndex].lat, lng: this.data[this.curIndex].lon, altitude: 2.5 }, 1000);
 		this.curIndex++;
 		if(this.curIndex >= this.data.length) {
 			this.curIndex = 0;
 		}
 		
 		
-		this.anim = window.setTimeout(function() {
-			fifo.increment();
-			_this.animate();
-		}, 3000);
+		fifo.increment();
+		
+			
 	}
 
 }

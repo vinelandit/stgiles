@@ -18,7 +18,7 @@ export default  {
 		{ year: 1901, value: 4472103}
 
 	],
-
+	
 	estimate: function(year, proportion = 1) {
 		
 		let pop = 0;

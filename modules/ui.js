@@ -5,15 +5,20 @@ import QRCode from 'qrcode'
 
 export default {
 
-    init: function(goNext, goPrev, apiRoot, nameCallback, loadCallback, restartCallback) {
+    init: function(goNext, goPrev, dbRoot, globe, m, app, nameCallback, loadCallback, restartCallback, prepareInterstitialCallback) {
 
         const _this = this;
         
+        console.log('init ui');
+        this.app = app;
         this.goNext = goNext;
         this.goPrev = goPrev;
+        this.globe = globe;
         this.nameCallback = nameCallback;
         this.loadCallback = loadCallback;
         this.restartCallback = restartCallback;
+        this.prepareInterstitialCallback = prepareInterstitialCallback;
+        this.m = m;
         this.curPanelID = 'home';
         this.panels = $('.panel');
         this.search = search;
@@ -23,38 +28,46 @@ export default {
         this.loading = document.getElementById('loading');
         this.outlier = document.getElementById('outlier');
         this.activeInput = null;
-        this.inactivityTimeout = 180; // seconds
+        this.recordThreshold = 500; // names with fewer records than this are excluded from visualisation
+        this.inactivityTimeout = 300; // seconds
 
-        search.init($('#searchName'), $('#searchResults'), function(surname, id, num_records) {
+        search.init($('#searchName'), $('#searchResults'), this.recordThreshold, function(surname, id, num_records) {
+            
+
+        
+            surname = _this.capitalizeFirstLetter(surname.toLowerCase());
             _this.ph('surname', surname);
-            _this.ph('surname_plural', surname.at(-1) == 'S' ? surname : surname + 's');
+            _this.ph('surname_plural', surname.at(-1) == 's' ? surname + 'es' : surname + 's');
             _this.ph('id', id);
             _this.ph('num_records', num_records.toLocaleString());
+            
+
             _this.nameCallback(surname, id, num_records);
             search.clear();
             _this.keyboard.clearInput('searchName');
-            _this.movePanel('interstitial');
-        }, apiRoot);
+            _this.movePanel('where');
+           
+            
+        }, dbRoot);
     
 
         $('#begin').click(function() {
-            gsap.to(['#timeline'], {
-                opacity: 1,
-                duration: 1,
-                delay: 0
-            });
+            
             _this.hidePanels();
             _this.goNext(1, true);
 
+
+            _this.app.setUI('main');
+
         });
 
-        $('#next').click(function() {
-            if ($('#nav').hasClass('disabled')) return false;
+        $('.next').click(function() {
+            if ($('#nav').hasClass('disabled') || _this.m.flying) return false;
             _this.goNext();
         });
 
-        $('#back').click(function() {
-            if ($('#nav').hasClass('disabled')) return false;
+        $('.back').click(function() {
+            if ($('#nav').hasClass('disabled') || _this.m.flying) return false;
             _this.goPrev();
 
         });
@@ -64,18 +77,24 @@ export default {
             _this.movePanel(targetID);
         });
 
-        $('.restart').click(function(){
+        $('.restart, .restartOverview, .restartPanel').click(function(){
             _this.restart();
         });
 
-        $(document).on('click', '.tlEvent', function(e){
-
-            if(_this.nav.classList.contains('disabled') || $(this).hasClass('selected')) {
+        $(document).on('click', '.tlEvent, .mapLink', function(e){
+            if(_this.m.flying || _this.nav.classList.contains('disabled') || $(this).hasClass('selected')) {
                 return false;
             }
-            const index = $(this).index('.tlEvent');
+            const index = $(this).index($(this).hasClass('tlEvent') ? '.tlEvent' : '.mapLink');
             _this.goNext(index, false, true);
         });
+
+        $('.overview').click(function() {
+            if ($('#nav').hasClass('disabled') || _this.m.flying) return false;
+            _this.goNext( $('.tlEvent').length , -1, true);
+
+        });
+
 
         this.keyboard = new Keyboard({
           onChange: input => onChangeKeyboard(input),
@@ -91,7 +110,6 @@ export default {
 
         function onChangeKeyboard(input){
           // document.querySelector(".input").value = input;
-          console.log("Input changed", input);
           _this.activeInput.val(input).change();
         }
 
@@ -104,31 +122,53 @@ export default {
 
     },
 
+    capitalizeFirstLetter: function(val) {
+        return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+    },
+
     setInactivityTimeout: function() {
         // start inactivity timeout
         const _this = this;
         this.tDaemon = window.setTimeout(function() {
-            _this.restart();
+            if(!_this.globe.animating) {
+                _this.restart();
+            }
+            
             _this.setInactivityTimeout();
         }, this.inactivityTimeout * 1000);
     },
 
     restart: function() {
         gsap.globalTimeline.clear();
-        this.hideQR();
         this.showPanels();
         this.movePanel('home');
         this.restartCallback();
+        this.hideMap();
     },
 
     showMap: function() {
+
+        gsap.set('#mapHolder', {
+            opacity: 0.0000001
+        });
+        gsap.to('#mapHolder', {
+            opacity: 1,
+            duration: 0.2
+        });
+
+        
+
+        
         gsap.set('#compass', {
             transform: 'rotate(0deg)'
         });
         gsap.to('#p_interstitial', {
             'background-color': 'rgba(100, 100, 100, 0)',
             duration: 1,
-            ease: 'power1.inOut'
+            ease: 'power1.inOut',
+            onComplete: function() {
+                
+            }
         });
         gsap.to('.progressBar', {
             opacity:0,
@@ -136,18 +176,38 @@ export default {
             ease: 'power1.inOut'
         });
 
-        // $('#panels').fadeOut(500);
-        gsap.to(['#compassHolder'], {
-            opacity:1,
+        
+
+        gsap.to('#stats, #inset', {
             x: 0,
             duration: 0.5,
-            delay:0
-        });  
+            delay: 0
+        });
+
         this.showBegin();
+
+
     },
 
+
+
+    hideMap: function() {
+        
+        gsap.to('#mapHolder', {
+            opacity: 0.000001,
+            duration: 0.2,
+            onComplete: function() {
+                console.log('setting ghost');
+                $('#mapHolder').css({
+                    opacity: 0.000001
+                });
+            }
+        });
+    },
+    
+
     ph: function(id, val) {
-        $('.ph_' + id).html(val);
+        $('.ph_' + id).text(val);
     },
 
     populate: function(surname) {
@@ -155,18 +215,45 @@ export default {
     },
 
     enableNav: function() {
-        this.nav.classList.remove('disabled');
+        gsap.set(this.nav, {
+            display: 'block'
+        });
+        gsap.to(this.nav, {
+            opacity: 1,
+            duration: 0.5
+        });
+
+        
+        gsap.to('#descriptionInner', {
+            opacity: 1,
+            duration: 0.5
+        });
     },
 
     disableNav: function() {
-        this.nav.classList.add('disabled');
+
+        const _this = this;
+        gsap.to(this.nav, {
+            opacity: 0,
+            duration: 0.5,
+            onComplete: function () {
+                gsap.set(_this.nav, {
+                    display: 'none'
+                });
+            }
+        });
+        gsap.to('#descriptionInner', {
+            opacity: 0,
+            duration: 0.5,
+            
+        });
     },
 
     hideLoading: function(skip = false) {
 
     	const _this = this;
         $('#loading').fadeOut(500);
-        
+
         this.showPanels(skip);
     },
 
@@ -181,10 +268,6 @@ export default {
           })
     },
 
-    hideQR: function() {
-        
-    },
-
     showPanels: function(skip) {
 
         const _this = this;
@@ -192,55 +275,57 @@ export default {
 
 
         // hide containers
-        gsap.set('#p_interstitial', {
-            'background-color': 'rgba(80, 80, 80, 1)'
-        });
+        
         gsap.set('.progressBar', {
             opacity: 1
         });
 
-        gsap.to(['#stats', '#compassHolder', '#qrHolder'], {
+
+
+        gsap.to('#tlOuter, #overviewTitle, #navOverview, #overviewFrame', {
+            opacity: 0,
+            duration: 0.5,
+            onComplete: function() {
+                gsap.set('#tlOuter, #overviewTitle, #navOverview, #overviewFrame', {
+                    display: 'none'
+                });
+            }
+        });
+
+        gsap.to('#stats, #ribbon, #inset, #compassHolder, #qrHolder, .restart', {
             opacity:0,
-            x: -200,
             duration: 0.5,
             delay:0,
             onComplete: function() {
                 $('#panels').fadeIn(500);
-                _this.movePanel(skip ? 'name' : 'home');
+                _this.movePanel(skip ? 'interstitial' : 'home');
+                gsap.set('#stats, #ribbon, #compassHolder, #qrHolder, .restart, #descriptionHolder, #nav', {
+                    display:'none'
+                });
             }
         });  
 
-        gsap.to(['#inset'], {
-            opacity:0,
-            x: 200,
-            duration: 0.5,
-            delay:0
-        }); 
-
-        gsap.to(['#timeline'], {
-            opacity:0,
-            duration: 0.5,
-            delay:0
-        });  
 
         gsap.to(['#descriptionHolder'], {
             opacity: 0,
-            y: 200,
             duration: 0.5,
             delay:0
         });
 
         gsap.to(['#begin', '#nav'], {
             y: 200,
-            duration: 0.5,
+            duration: 0.25,
+            opacity: 0,
             delay:0
         });
 
-        if(skip || skip == 'home') {
-            $('.restart').addClass('visible');
-        } else {
-            $('.restart').removeClass('visible');
-        }
+        
+
+        $('#p_home').show();
+        gsap.to('#p_home', {
+            opacity: 1,
+            duration: 0.5
+        });
 
 
     },
@@ -253,30 +338,51 @@ export default {
         
         const _this = this;
 
-        if(id != 'home') {
-            $('.restart').addClass('visible');
-        }
-
 
         if(id != this.curPanelID) {
-            $('#keyboard-holder').hide();
+            gsap.to('#keyboard-holder', {
+                opacity: 0,
+                y: 100,
+                duration: 0.5,
+                onComplete: function() {
+                    gsap.set('#keyboard-holder', {
+                        display: 'none'
+                    });
+                }
+            });
             const me = $('.panel#p_' + this.curPanelID);
             const next = $('.panel#p_' + id);
             gsap.set(next, {
-                x: '100%'
+                scale: 0.5,
+                opacity: 0,
+                display: 'block'
             });
             gsap.to(me, {
-                x: '-100%',
-                duration: 1.0,
-                ease: 'power1.inOut'
+                scale: 1.7,
+                opacity: 0,
+                duration: 0.5,
+                ease: 'power1.inOut',
+                onComplete: function() {
+                    me.hide();
+                }
             });
             gsap.to(next, {
-                x: '0',
-                duration: 1.0,
+                scale: 1,
+                opacity: 1,
+                duration: 0.5,
                 ease: 'power1.inOut',
                 onComplete: function() {
                     if(id == 'where' || id =='name') {
-                        $('#keyboard-holder').show();
+                        gsap.set('#keyboard-holder', {
+                            display: 'block',
+                            opacity: 0
+                        });
+                        gsap.to('#keyboard-holder', {
+                            opacity: 1,
+                            y: 0,
+                            delay: 0.75,
+                            duration: 1
+                        });
                         _this.mapKeyboard(id);
                     }
                 }
@@ -286,6 +392,9 @@ export default {
         this.curPanelID = id;
 
         if(id == 'interstitial') {
+
+            this.prepareInterstitialCallback();
+
             gsap.set(this.pb, {
                 width: 0
             });
@@ -293,16 +402,42 @@ export default {
             gsap.to(this.pb, {
                 width: '100%',
                 duration: this.debug ? 0.1 : 2.5,
-                delay: 1,
+                delay: 0.1,
                 ease: 'linear',
                 onComplete: function() {
+                    // _this.showMap();
                     _this.loadCallback();
                 }
             });
+            
         } else if (id == 'name') {
+
+            this.globe.focus();
             search.clear();
+
+            gsap.to('.panels_underlay', {
+                y: 0,
+                opacity: 1,
+                duration: 1
+            });
+        }
+
+        if(id == 'name') {
+            gsap.to('.panels_underlay', {
+                y: 0,
+                opacity: 1,
+                duration: 1
+            });
+        } else {
+            gsap.to('.panels_underlay', {
+                y: 100,
+                opacity: 0,
+                duration: 1
+            });
         }
     },
+
+
 
     mapKeyboard: function(id) {
         
@@ -315,9 +450,16 @@ export default {
     },
 
     hideBegin: function() {
+        const _this = this;
         gsap.to(this.begin, {
-            transform: 'translateY(130px)',
-            duration: 1,
+            transform: 'translateY(100px)',
+            opacity: 0,
+            duration: 0.5,
+            onComplete: function() {
+                gsap.set(_this.begin, {
+                    display: 'none'
+                });
+            }
         });
         gsap.to(this.nav, {
             transform: 'translateY(0)',
@@ -327,7 +469,10 @@ export default {
     },
 
     showBegin: function() {
-        this.begin.style.display = 'block';
+        gsap.set(this.begin, {
+            display: 'block',
+            opacity: 0
+        });
         gsap.to(this.begin, {
             opacity: 1,
             transform: 'translateY(0)',

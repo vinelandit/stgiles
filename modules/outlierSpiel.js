@@ -154,7 +154,6 @@ export default  {
 			era = `in ${earliest}`;
 		}
 
-		console.log(earliest, latest, boysNames, girlsNames, parishes);
 		if(num_records < 50) {
 			let suffix = 's';
 			if(num_records == 1) {

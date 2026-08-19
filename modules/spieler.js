@@ -1,6 +1,7 @@
 import { regions } from './regions.js';
 import { news } from './news.js';
 
+
 const spieler = {
 	
 	data: [],
@@ -11,7 +12,7 @@ const spieler = {
 	points: ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"],
 
 	pluralise: function(surname) {
-		return surname.at(-1) == 'S' ? surname : surname + 's';
+		return surname.at(-1) == 's' ? surname + 'es' : surname + 's';
 	},
 
 	distLL: function(p1, p2) {
@@ -199,14 +200,12 @@ const spieler = {
 		d.init = init;
 
 		if (this.index == (this.data.length - 2) && this.wasLast) {
-			console.log('notify');
 			// notify main that this is going back from last zoomed-out position
 			d.init = -2;
 		}
 		
 		if (this.index == this.data.length - 1) {
 			// notify main that this is the last zoomed-out position
-			console.log('on last');
 			d.init = -1;
 			this.wasLast = true;
 		} else {
@@ -218,12 +217,50 @@ const spieler = {
 		return d;
 	},
 
+	setClusterProportions: function() {
+		
+		let total = 0;
+		for(var c = 0; c < this.data.length - 1; c++) {
+			total += this.data[c].total;
+		}
+
+
+		for(var c = 0; c < this.data.length - 1; c++) {
+			this.data[c].proportion = this.data[c].total / total;
+		}
+	},
+
+	clusterDensities: function(year) {
+		
+		let phase;
+		const vals = [];
+		for(var c = 0; c < this.data.length - 1; c++) {
+			const firstYear = this.data[c].year;
+			const lastYear = this.data[c].lastyear; // assume no net change at end of records
+
+			phase = this.smoothstep(firstYear, this.data[c].lastyear + 50, year);
+			phase *= this.smoothstep(lastYear + 50, lastYear, year);
+
+			vals.push(phase * (0.5 + 0.5 * this.data[c].proportion));
+		}
+
+		return vals;
+	},
+
+	smoothstep(min, max, value) { //Normal smoothstep
+	  
+  		const x = Math.max(0, Math.min(1, (value - min)/(max - min)));
+  		return x * x * (3 - 2 * x);
+
+	},
+
 	parse: function(name, clusters) {
 
 		let text = '';
 		let numExtant = 0;
 		let lastCentroid;
 		let lastRegion;
+
 		const _ = this._.bind(this);
 
 		this.data = [];
@@ -234,6 +271,13 @@ const spieler = {
 			o.text = '';
 			let direction;
 			const c = clusters[i];
+
+			if(c['maxparish']['name'] == 'North Uist') {
+				// intervening manually, this should be changed in the source data
+				c['maxparish']['pos'][0] = 57.6;
+				c['maxparish']['pos'][1] = -7.333;
+			}
+
 			const reign = 10 + parseInt(c['lastyear'] - c['firstyear']);
 			o.year = c['firstyear'];
 			o.lastyear = c['lastyear'];
@@ -329,10 +373,8 @@ const spieler = {
 
 			}
 			if(visitedParishes.includes(this.data[d].name)) {
-				console.log('fuck', this.data[d].name);
 				this.data[d].text = `${_('After')} a ${_('break')}, the ${this.pluralise(name)} ${_('return to')} the parish of ${this.data[d].name} in ${this.data[d].region}. `;					
 			} else if (lastRegion == this.data[d].region) {
-				console.log('cunt', this.data[d].region);
 				this.data[d].text = `${_('Remaining')} in ${lastRegion}, the ${this.pluralise(name)} ${_('show up')} ${_('in and around')} the parish of ${this.data[d].name}. `;
 
 			}
@@ -354,14 +396,19 @@ const spieler = {
 		}
 
 		this.data.push(oFinal);
+
+
+		this.setClusterProportions();
+
 		
 	},
 
 
-	init: function(surname, id, apiRoot, callback, debug) {
+	init: function(surname, id, dataRoot, pop, callback, debug) {
 
 		const _this = this;
 
+		this.pop = pop;
 		this.index = -1;
 		this.wasLast = false;
 		this.surname = surname;
@@ -371,10 +418,12 @@ const spieler = {
 			this.syndices[s] = Math.floor(Math.random() * this.syn[s].length);
 		}
 
-		$.get(apiRoot + "/data/spiel/" + id + ".json", function(data) {
-			
+		const url = dataRoot + "/data/spiel/" + id + ".json";
+		$.get(url, function(data) {
+		  console.log('fuck', url);
 		  _this.parse(_this.surname, data);
 		  const o = {};
+		  const names = {};
 		  let count = 0;
 		  for(var i in _this.data) {
 
@@ -382,6 +431,7 @@ const spieler = {
 		  		_this.data[i].year < 1900
 		  	) {
 		  		o[_this.data[i].year] = _this.data[i].pos;
+		  		names[_this.data[i].year] = _this.data[i].name;
 		  	}
 		  	count++;
 		  }
@@ -390,7 +440,7 @@ const spieler = {
 		  	console.log('narrative data too sparse for ' + _this.surname);
 		  	callback(false);
 		  } else {
-		  	callback(o);
+		  	callback(o, names);
 		  }
 		  
 		}).fail(function(err){

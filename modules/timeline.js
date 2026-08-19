@@ -1,6 +1,6 @@
 export default {
 
-    init: function(pop, startYear, endYear, populationID, continuousYearID, selector = '#timelineStrip', template = `<div class="timelineItem">{year}</timelineItem>`) {
+    init: function(pop, startYear, endYear, populationClass, continuousYearClass, selector = '#timelineStrip', template = `<div class="timelineItem">{year}</timelineItem>`) {
 
         this.pop = pop;
         this.startYear = startYear;
@@ -8,8 +8,8 @@ export default {
         this.selector = selector;
         this.phase = startYear;
         
-        this.populationEl = document.getElementById(populationID);
-        this.continuousYearEl = document.getElementById(continuousYearID);
+        this.populationEl = $('.' + populationClass);
+        this.continuousYearEl = $('.' + continuousYearClass);
 
         this.continuousYear = 0;
 
@@ -73,8 +73,9 @@ export default {
 
                 if (y != _this.continuousYear) {
                     _this.continuousYear = y;
-                    _this.populationEl.innerHTML = _this.pop.population(y).toLocaleString();
-                    _this.continuousYearEl.innerHTML = y;
+
+                    _this.populationEl.html(_this.pop.population(y).toLocaleString());
+                    _this.continuoueYearEl.html(y);
                 }
             }
         });

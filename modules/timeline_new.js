@@ -1,6 +1,6 @@
 export default {
 
-    init: function(pop, data, startYear, endYear, populationID, continuousYearID, selector = '#tlStrip', 
+    init: function(pop, data, startYear, endYear, populationClass, continuousYearClass, selector = '#tlStrip', 
         template = `<div class="tlItem" style="width:+++WIDTH+++">+++LABEL+++<span class="tick +++TICKCLASS+++"></span>+++EVENT+++</div>` ) {
 
         this.pop = pop;
@@ -9,10 +9,11 @@ export default {
         this.selector = selector;
         this.phase = startYear;
 
-        this.wpc = (endYear - startYear) / 119;
-        
-        this.populationEl = document.getElementById(populationID);
-        this.continuousYearEl = document.getElementById(continuousYearID);
+        this.wpc = (endYear - startYear) / 119;        
+
+        this.populationEl = $('.' + populationClass);
+        this.continuousYearEl = $('.' + continuousYearClass);
+
 
         this.continuousYear = 0;
 
@@ -53,7 +54,6 @@ export default {
         const events = $('.tlEvent');
         const first = events[0];
         const last = events[events.length - 1];
-        console.log(first, last);
 
         const c = $('#tlConnector');
         c.css({
@@ -86,8 +86,6 @@ export default {
 
         let targetX = this.wpc * (cardinalYear + 0.5);
 
-        console.log(cardinalYear);
-
         gsap.to('#tlPointer', {
             left: targetX + '%',
             duration: 5,
@@ -108,8 +106,10 @@ export default {
 
                 if (y != _this.continuousYear) {
                     _this.continuousYear = y;
-                    _this.populationEl.innerHTML = _this.pop.population(y).toLocaleString();
-                    _this.continuousYearEl.innerHTML = y;
+
+                    _this.populationEl.html(_this.pop.population(y).toLocaleString());
+
+                    _this.continuousYearEl.html(y);
                 }
             }
         });

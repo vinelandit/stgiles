@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-// import { MapControls } from 'three/addons/controls/MapControls.js';
 import {
     ImprovedNoise
 } from 'three/addons/math/ImprovedNoise.js';
@@ -20,11 +19,15 @@ import {
     OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
 
+
 import { Project } from './project.js';
 
 const m = {
 
     texLoaded: [ null, null, null, null, null],
+    overviewGroup: new THREE.Group(),
+    // overviewMat: new THREE.LineBasicMaterial( { vertexColors: false, color: new THREE.Color(0x000000), transparent: true } ),
+            
 
     mapConfig: {
       north: 59.36977,
@@ -33,27 +36,46 @@ const m = {
       west: -7.96315,
       width: 5798,
       height: 7965,
+      offsetY: 0,
       scale: 100,
       invert: true,
       mode: 'mercator'
-    }, 
-    /*
+    },
+
+    _shader: null, 
+    _year: 0,
+
+    inset: inset,
+
+    
     
     mapConfig: {
       north: 61,
       south: 49,
       east: 2.2,
       west: -11,
-      width: 9059 * 2,
-      height: 14000 * 2,
-      scale: 300,
+      width: 9059,
+      height: 14000,
+      offsetY: -1000,
+      mapCentreOffsetY: 0,
+      scale: 200,
       invert: true,
       mode: 'equirectangular'
     },
     
-    */
+   
     reset: function() {
+        
+
+        this.scene.remove(this.overviewGroup);
+        delete this.overviewGroup;
+        this.overviewGroup = new THREE.Group();
+        this.scene.add(this.overviewGroup);
+        
+        // this.overviewMat.opacity = 0;
+
         this.spin = false;
+        this.spinFree = true;
         this.flying = false;
         this.maxSpherePhase = 0.3;
         this.activeOpacityFactor = 1;
@@ -65,7 +87,7 @@ const m = {
         this.cameraSpinOffset = new THREE.Vector3(this.cameraSpinOffsetInit[0], this.cameraSpinOffsetInit[1], this.cameraSpinOffsetInit[2]);
         
         this.camera.lookAt(this.lookAt);
-        this.sMaterialOverview.opacity = 0;
+        // this.sMaterialOverview.opacity = 1;
 
         // update active parish
         gsap.set('.landmark.parish', {
@@ -73,26 +95,35 @@ const m = {
         });
     },
 
-    init: function(callback, debug) {
+    init: function(callback, spieler, timeline, debug) {
 
+        console.log('init map3d');
         const _this = this;
 
+        this.FPSCounter = new fpsCounter();
+
         this.callback = callback;
-        this.spinRateInc = 0.000005;
-        this.spinRateMax = 0.0015;
-        this.elevation = 2;
+        this.spieler = spieler;
+        this.timeline = timeline;
+        this.spinRateInc = 0.00001;
+        this.spinRateMax = 0.00075;
+        this.elevation = 5;
         this.spheres = {};
         this.activeYear = null;
         this.debug = debug;
 
-        this.infix = this.debug ? '' : '';
+        this.lodPhase = { value: 1.0 };
+
+        this.infix = this.debug ? '_small' : '_small';
 
         this.currentPosition = { lat: 55, lon: -5 }; // for animating inset map
 
         this.spherePhase = 0;
 
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(35, window.innerWidth / (window.innerHeight + 200), 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / (window.innerHeight), 0.1, 1000);
+
+        this.camera.setViewOffset(window.innerWidth, window.innerHeight, 0, 200, window.innerWidth, window.innerHeight);
         this.axesHelper = new THREE.AxesHelper(5);
         this.ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
         // this.sun = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -115,14 +146,10 @@ const m = {
             antialias: true
         });
 
-        console.log('IS WEBGL2?', this.renderer.capabilities.isWebGL2);
-
-        console.log(this.dims, this.mapConfig.scale);
-        console.log(this.dims[0] / this.mapConfig.scale, this.dims[1] / this.mapConfig.scale, this.dims[0] / 2, this.dims[1] / 2);
-
 
         this.geometryGroup = new THREE.Group();
         this.scene.add(this.geometryGroup);
+        this.scene.add(this.overviewGroup);
 
         // this.scene.add( this.axesHelper );
         // this.scene.add( this.ambientLight );
@@ -132,13 +159,13 @@ const m = {
         this.camera.eulerOrder = 'YXZ';
 
 
-        this.cameraPositionInit = [0, 105, -25];
+        this.cameraPositionInit = [0, 60, 10.301];
         
-        this.lookAtInit = [0.0, 0.0, 0.0];
+        this.lookAtInit = [0, 0, 10.31];
 
 
 
-        this.cameraPositionFinal = [0, 300, -5.001];
+        this.cameraPositionFinal = [0, 60, 10.301];
         this.cameraSpinOffsetInit = [0, 0, -5];
 
         
@@ -147,7 +174,7 @@ const m = {
 
         // this.pivotGroup.add(this.camera);
 
-        this.renderer.setSize(window.innerWidth, window.innerHeight + 200);
+        this.renderer.setSize(window.innerWidth, window.innerHeight + 0);
         this.renderer.sortObjects = true;
 
         this.renderer.outputEncoding = THREE.sRGBEncoding;
@@ -157,59 +184,10 @@ const m = {
 
         document.getElementById('mapHolder').appendChild(this.renderer.domElement);
 
-
-
         this.plane = null;
-
-        
-        /*
-        for(var i = 0; i < 4; i++) {
-
-            const k = i;
-            new THREE.TextureLoader().load('./images/map_texture_' + k + '.jpg',
-                function(tex) {
-                    tex.encoding = THREE.sRGBEncoding;
-                    tex.colorSpace = THREE.SRGBColorSpace;
-                    _this.texLoaded[0][k] = tex;
-                    console.log('LOADED map', k);
-                    _this.checkTex();
-
-                },
-                function(err) {
-                    console.error(err);
-                }
-            );
-            new THREE.TextureLoader().load('./images/heightmap_' + k + '.jpg',
-                function(tex) {
-                    tex.encoding = THREE.sRGBEncoding;
-                    tex.colorSpace = THREE.SRGBColorSpace;
-                    _this.texLoaded[1][k] = tex;
-                    console.log('LOADED height', k);
-                    _this.checkTex();
-
-                },
-                function(err) {
-                    console.error(err);
-                }
-            );
-            new THREE.TextureLoader().load('./images/map_alpha_' + k + '.jpg',
-                function(tex) {
-                    tex.encoding = THREE.sRGBEncoding;
-                    tex.colorSpace = THREE.SRGBColorSpace;
-                    _this.texLoaded[2][k] = tex;
-                    console.log('LOADED alpha', k);
-                    _this.checkTex();
-
-                },
-                function(err) {
-                    console.error(err);
-                }
-            );
-        }
-        */
         
         const mapLoader = new THREE.TextureLoader();
-        mapLoader.load('./images/map_contours_modified' + this.infix + '.jpg',
+        mapLoader.load('./images/sg_tex_col-1_desat.jpg',
             function(tex) {
                 tex.encoding = THREE.sRGBEncoding;
                 tex.colorSpace = THREE.SRGBColorSpace;
@@ -223,10 +201,10 @@ const m = {
         ); 
 
         const hmapLoader = new THREE.TextureLoader();
-        hmapLoader.load('./images/heightmap_modified' + this.infix + '.jpg',
+        hmapLoader.load('./images/sg_tex_height_normalised.png',
             function(tex) {
-                tex.encoding = THREE.sRGBEncoding;
-                tex.colorSpace = THREE.SRGBColorSpace;
+                // tex.encoding = THREE.sRGBEncoding;
+                // tex.colorSpace = THREE.SRGBColorSpace;
                 _this.texLoaded[1] = tex;
                 _this.checkTex();
 
@@ -237,7 +215,34 @@ const m = {
         ); 
 
 
-        inset.init();
+        const maskLoader = new THREE.TextureLoader();
+        hmapLoader.load('./images/sg_tex_mask_small.jpg',
+            function(tex) {
+                // tex.encoding = THREE.sRGBEncoding;
+                // tex.colorSpace = THREE.SRGBColorSpace;
+                _this.texLoaded[2] = tex;
+                _this.checkTex();
+
+            },
+            function(err) {
+                console.error(err);
+            }
+        ); 
+
+        const lodLoader = new THREE.TextureLoader();
+        lodLoader.load('./images/sg_tex_col-2.jpg',
+            function(tex) {
+                // tex.encoding = THREE.sRGBEncoding;
+                // tex.colorSpace = THREE.SRGBColorSpace;
+                _this.texLoaded[3] = tex;
+                _this.checkTex();
+
+            },
+            function(err) {
+                console.error(err);
+            }
+        ); 
+
 
         this.sGeometry = new THREE.SphereGeometry(0.5, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.5);
         this.sMaterialActive = new THREE.MeshBasicMaterial({
@@ -248,45 +253,110 @@ const m = {
             opacity: 0.0,
             userData: { intrinsicOpacity: 0 }
         });
-        this.sMaterialOverview = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
+        /* this.sMaterialOverview = new THREE.MeshBasicMaterial({
+            color: 0xff0000,
             transparent: true,
             depthTest: false,
             depthWrite: false,
-            opacity: 0.0,
-            userData: { intrinsicOpacity: 0 }
-        });
+            opacity: 1.0,
+            userData: { intrinsicOpacity: 1 }
+        }); */
         this.activeSphere = new THREE.Mesh(this.sGeometry, this.sMaterialActive);
         this.scene.add(this.activeSphere);
     },
 
 
-    makeSpheres: function(coords) {
+    makeSpheres: function(coords, names, suppress) {
 
-        console.log('make spheres');
+        this.coords = coords;
+
         for (var s in this.spheres) {
             this.scene.remove(this.spheres[s]);
             delete this.spheres[s];
         }
 
+        $('.overviewLabel').remove();
+
         let init = true;
+
+        let j = 0;
+
         for (var i in coords) {
+
+            const name = names[i];
             const xy = this.project.ll2xy(coords[i][0], coords[i][1]);
 
-            const sphere = new THREE.Mesh(this.sGeometry, this.sMaterialOverview);
+            xy[1] += this.project.options.mapCentreOffsetY;
+
+            /* const sphere = new THREE.Mesh(this.sGeometry, this.sMaterialOverview);
             sphere.position.set(xy[0], 0, xy[1]);
-            sphere.scale.set(1.5, 1.5, 1.5);
+            sphere.scale.set(0.5, 0.5, 0.5);
             this.spheres[i] = sphere;
 
             this.scene.add(sphere);
-
+            */
+            
             if(init) {
                 // set active sphere to first location
                 this.activeSphere.position.set(xy[0], 0, xy[1]);
                 init = false;
             }
+            
+
+            let mapped = this.project.ll2xy( coords[i][0], coords[i][1], true );
+
+
+            this._shader.uniforms['uHotspot' + j].value.x = mapped[0] * this.mapConfig.scale;
+            this._shader.uniforms['uHotspot' + j].value.y = this.mapConfig.height - mapped[1] * this.mapConfig.scale;
+            this._shader.uniforms['uHotspot' + j].value.z = 0;
+
+
+
+            let mappedInset = this.inset.project.ll2xy( coords[i][0], coords[i][1], true );
+            
+
+            mappedInset[1] = this.inset.config.height - mappedInset[1];
+            
+            this.inset._shader.uniforms['uHotspot' + j].value.x = mappedInset[0];
+            this.inset._shader.uniforms['uHotspot' + j].value.y = mappedInset[1];
+            this.inset._shader.uniforms['uHotspot' + j].value.z = 1;
+               
+
+            // overview labels
+            const pin = new THREE.Group();
+
+            pin.position.set(xy[0], 0, xy[1]);
+            this.overviewGroup.add(pin);
+            
+            const label = document.createElement('label');
+            label.className = 'overviewLabel' + (suppress.indexOf(j) > -1 ? ' suppress' : '');
+
+
+            const span = document.createElement('span');
+            span.textContent = name;
+            label.appendChild(span);
+            const label3 = new CSS2DObject(label);
+            label3.position.set(0, 0.0, 0);
+            label3.center.set(0, 0);
+            pin.add(label3);
+
+            pin.renderOrder = 1;
+
+            j++;
+
+
         }
 
+        // hide remaining hotspot slots
+        for(j = j; j < 12; j++) {
+            this._shader.uniforms['uHotspot' + j].value.x = 0;
+            this._shader.uniforms['uHotspot' + j].value.y = 0;
+            this._shader.uniforms['uHotspot' + j].value.z = 0;
+
+            this.inset._shader.uniforms['uHotspot' + j].value.x = 0;
+            this.inset._shader.uniforms['uHotspot' + j].value.y = 0;
+            this.inset._shader.uniforms['uHotspot' + j].value.z = 0;
+        }
     },
 
     fly: function(year, name, position, callback, init) {
@@ -299,11 +369,13 @@ const m = {
         const parishLabelText = document.querySelector('.landmark.parish span');
         this.camera.up.set(0, 1, 0);
 
+        this.flying = true;
+
         if(init == -1) {
             // last record
             inset.hide();
             gsap.to(this.sMaterialOverview, {
-                opacity: 0.5,
+                opacity: 1.0,
                 ease: 'sine.inOut', 
                 duration: 2,
                 delay: 2
@@ -313,6 +385,12 @@ const m = {
                 duration: 2,
                 ease: 'sine.inOut'
             });
+
+            gsap.to(this._shader.uniforms['uHeatmapVisiblePhase'], {
+                value: 1,
+                duration: 5
+            });
+
 
         } else {
             inset.show();
@@ -326,12 +404,6 @@ const m = {
                 }
             });
 
-            gsap.to(this.sMaterialOverview, {
-                opacity: 0.0,
-                ease: 'sine.inOut', 
-                duration: 2,
-                delay: 1
-            });
 
         }
         
@@ -340,19 +412,34 @@ const m = {
 
             // not last date
             xy = this.project.ll2xy(position[0], position[1]);
+            xy[1] += this.project.options.mapCentreOffsetY;
+
+            gsap.to('.landmark.hidden span', {
+                opacity: 1,
+                duration: 0.5,
+                onComplete: function() {
+                    $('.landmark.hidden').removeClass('hidden');
+                }
+            });
+
             // update active parish
             gsap.to('.landmark.parish', {
                 opacity: 0,
                 duration: 1,
                 onComplete: function() {
                     landmarks.activeParish.position.set(xy[0], 0, xy[1]);
-                    if (landmarks.tooClose(position[0], position[1]) == -1) {
-                        parishLabelText.innerHTML = name;
-                        parishLabel.classList.remove('noText');
-                    } else {
-                        parishLabelText.innerHTML = '';
-                        parishLabel.classList.add('noText');
+                    parishLabelText.innerHTML = name;
+                    parishLabel.classList.remove('noText');
+                    
+                    const tc = landmarks.tooClose(position[0], position[1])
+                    if ( tc != -1) {
+                        $('#landmark' + tc[2]).addClass('hidden');
+                        gsap.to('#landmark' + tc[2] + ' span', {
+                            opacity: 0,
+                            duration: 0.5
+                        });
                     }
+                    parishLabelText.innerHTML = name;
                     gsap.to('.landmark.parish', {
                         opacity: 1,
                         duration: 1,
@@ -379,12 +466,19 @@ const m = {
             
         } 
 
-        // disable video play for the moment
-        // document.querySelector('#inset video').play();
-
         const r = 5;
 
         if (init == 1 || init == -2) {
+
+            if(init == -2) {
+
+                gsap.to(this._shader.uniforms['uHeatmapVisiblePhase'], {
+                    value: 0,
+                    duration: 5
+                });
+            }
+
+            this.spinFree = true;
 
             this.cameraSpinOffset.setX(this.cameraSpinOffsetInit[0]);
             this.cameraSpinOffset.setX(this.cameraSpinOffsetInit[1]);
@@ -396,25 +490,33 @@ const m = {
             gsap.to(this.camera.position, {
                 x: xy[0],
                 y: this.elevation,
-                z: xy[1] - 5,
-                ease: 'sine.inOut',
+                z: xy[1] - 10, // - 5 
+                ease: 'power1.inOut',
                 delay: 0,
                 duration: 5,
 
             });
+
+
+            gsap.to(this.lodPhase, {
+                value: 0,
+                duration: 2.5,
+                ease: 'sine.inOut'
+            });
+
+            $('#mapHolder').addClass('tiltshift');
 
             this.cameraSpinOffset.setY(this.elevation);
 
             gsap.to(this.lookAt, {
                 x: xy[0],
                 y: 0,
-                z: xy[1],
-                ease: 'sine.inOut',
+                z: xy[1] - 0,
+                ease: 'power1.inOut',
                 delay: 0,
                 duration: 5,
                 onUpdate: function() {
                     _this.camera.lookAt(_this.lookAt);
-                	inset.update(_this.lookAt.x, _this.lookAt.z );
                 },
                 onComplete: function() {
                     // _this.spinPhase = 0;
@@ -422,20 +524,42 @@ const m = {
                     
                     
                     callback();
-                    console.log(_this.camera, _this.lookAt, _this.cameraSpinOffset);
+                    
                 }
             });
 
             
         } else if (init == -1) {
+
+
             // last record, zoom out
-            this.spin = false;
+
+            gsap.to(this.lodPhase, {
+                value: 1,
+                duration: 5,
+                ease: 'power1.inOut'
+            });
+
+            $('#mapHolder').removeClass('tiltshift');
+
+            this.spin = true;
+            // this.spinRate = 0;
+
+            this.spinFree = false;
+            gsap.to(this, {
+                spinPhase: this.spinPhase > Math.PI * 0.5 ? Math.PI : 0,
+                duration: 5,
+                ease: 'sine.inOut'
+            });
+
+
             gsap.to(this.camera.position, {
                 x: this.cameraPositionFinal[0],
                 y: this.cameraPositionFinal[1],
                 z: this.cameraPositionFinal[2],
                 ease: 'sine.inOut',
                 duration: 5,
+                delay: 0.0,
                 onUpdate: function() {
                     _this.camera.lookAt(_this.lookAt);
                 },
@@ -450,9 +574,10 @@ const m = {
                 z: this.lookAtInit[2],
                 ease: 'sine.inOut',
                 duration: 5,
+                delay: 0.0,
                 onUpdate: function() {
                     _this.camera.lookAt(_this.lookAt);
-                	inset.update(_this.lookAt.x, _this.lookAt.z );
+                	// inset.update(_this.lookAt.x, _this.lookAt.z );
                 }
             });
 
@@ -462,10 +587,11 @@ const m = {
                 z: this.cameraSpinOffsetInit[2],
                 ease: 'sine.inOut',
                 duration: 5,
+                delay: 0.0,
                 onUpdate: function() {
                     _this.camera.lookAt(_this.lookAt);
                 }
-            });
+            }); 
             gsap.to('.landmark.parish', {
                 opacity: 0,
                 duration: 1,
@@ -474,15 +600,16 @@ const m = {
             // reinit compass
             gsap.to('#compass', {
                 transform: 'rotate(0)',
-                duration: 5,
+                duration: 0.5,
                 ease: 'sine.inOut'
             });
+            
 
         } else {
 
 
             gsap.to(this.cameraSpinOffset, {
-                y: this.elevation * 6,
+                y: this.elevation * 3,
                 ease: 'sine.inOut',
                 delay: 0.0,
                 duration: 2.5,
@@ -497,7 +624,7 @@ const m = {
             });
             gsap.to(this.cameraSpinOffset, {
                 x: 0,
-                z: -5,
+                z: -10,
                 ease: 'sine.inOut',
                 duration: 5,
                 onUpdate: function() {
@@ -510,7 +637,6 @@ const m = {
                     // _this.spinPhase = 0;
                     _this.spin = true;
                     callback();
-                    console.log(_this.camera, _this.lookAt);
                 }
             });
             
@@ -518,33 +644,31 @@ const m = {
             gsap.to(this.lookAt, {
                 x: xy[0],
                 y: 0,
-                z: xy[1],
+                z: xy[1] - 0,
                 ease: 'sine.inOut',
                 duration: 5,
                 onUpdate: function() {
                     _this.camera.lookAt(_this.lookAt);
-                	inset.update(_this.lookAt.x, _this.lookAt.z );
                 }
             });
 
 
         }
-        if(init !== -1) {
-            this.flying = true;
-        }
+
+        window.setTimeout(function() {
+            _this.flying = false;
+        }, 6000);
+        
         this.lastPosition = xy;
 
     },
 
     checkTex: function() {
         
-        // if (this.texLoaded[0].length === 4 && this.texLoaded[1].length === 4 && this.texLoaded[2].length === 4
-        //   && !this.texLoaded[0].includes(undefined)
-        //    && !this.texLoaded[1].includes(undefined)  
-        //    && !this.texLoaded[2].includes(undefined)  
-        //     ) {
+        const _this = this;
 
-         if (this.texLoaded[0] && this.texLoaded[1]) {
+        console.log('check tex');
+        if (this.texLoaded[0] && this.texLoaded[1] && this.texLoaded[2] && this.texLoaded[3] ) {
 
             // CSS2D labels
 
@@ -564,67 +688,114 @@ const m = {
             // untiled map
             this.materials['untiled'] = new THREE.MeshStandardMaterial({
                 map: this.texLoaded[0],
-                // aoMap: texLoaded[3],
+                // aoMap: this.texLoaded[3],
                 displacementMap: this.texLoaded[1],
-                displacementScale: 0.6, // 0.6,
+                displacementScale: 0.2, // 0.6,
                 displacementBias: 0,
                 emissiveMap: this.texLoaded[0],
                 emissive: new THREE.Color(0xffffff),
-                // normalMap: this.texLoaded[2],
-                // normalScale: new THREE.Vector2(1.0, 1.0),
-                // normalMapType: THREE.TangentSpaceNormalMap,
-
+                normalMap: this.texLoaded[2], // using normal map slot for mask
+                alphaMap: this.texLoaded[3]
 
             });
 
+
+
+
+            this.ar = this.mapConfig.width / this.mapConfig.height;
+            
+
+            const numHotspots = 12;
+            let injectUniforms = `uniform float uLodPhase; 
+            uniform float uHeatmapVisiblePhase; 
+            uniform float uAspectRatio; 
+            uniform vec2 uResolution;
+            `;
+
+            let injectPost = `vec2 p = vMapUv; p.y /= uAspectRatio; float density = 0.0;
+
+            float cutoff = 0.05;
+            float bands = 15.;
+            float bias = -.25;
+            float smoothness = 0.2;
+            float exponent = 35.;
+            float factor = 1.0;
+            vec2 h;
+            `;
+
+
+            for(let i = 0; i < numHotspots; i++) {
+                this.materials['untiled'].userData['hotspot' + i] = { value: [0.0, 0.0, 0.0] };
+                
+
+                injectUniforms += `uniform vec3 uHotspot` + i + `;
+                `;
+
+                injectPost += `
+                
+                // gaussian         
+                
+                h = uHotspot${i}.xy;
+                h.y /= uAspectRatio;
+
+                density += (factor * uHotspot${i}.z) * exp( - exponent * length(p - h / uResolution)); 
+                // density += float(length(p - h / uResolution) < 0.01);
+                
+                `
+            }
+
+
+            injectPost += `
+                
+            if(density < cutoff) {
+                density = 0.0;
+            }
+
+            density *= texture(normalMap, vMapUv + vec2(0., 1000./14000.)).r; // compensating for Y texture offset
+            density = round(density * bands) / bands;
+
+            // map LOD
+            gl_FragColor = mix(gl_FragColor, texture(alphaMap, vMapUv), uLodPhase); 
+            
+
+            float grid = 0.5 + (0.5 + bias) * sin(vMapUv.t * 1500.);
+
+            grid += bias;
+
+            density *= uHeatmapVisiblePhase;
+
+            float final = smoothstep(grid, grid + smoothness, density);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * vec3(62., 139., 103.) / 255.0, final);
+            `;
+
+
+
+            this.materials['untiled'].onBeforeCompile = shader => {
+                shader.uniforms['uLodPhase'] = new THREE.Uniform(0.0);
+                shader.uniforms['uHeatmapVisiblePhase'] = new THREE.Uniform(0.0);
+                shader.uniforms['uAspectRatio'] = new THREE.Uniform(this.ar);
+                shader.uniforms['uResolution'] = new THREE.Uniform([ this.mapConfig.width, this.mapConfig.height ]);
+                for(let i = 0; i < numHotspots; i++) {
+                    shader.uniforms['uHotspot' + i] = new THREE.Uniform(new THREE.Vector3(this.materials['untiled'].userData['hotspot' + i].value[0], this.materials['untiled'].userData['hotspot' + i].value[1], this.materials['untiled'].userData['hotspot' + i].value[2]));
+                }
+
+                shader.fragmentShader = injectUniforms + shader.fragmentShader;
+                
+                shader.fragmentShader = shader.fragmentShader.replace(`#include <dithering_fragment>`, `#include <dithering_fragment>
+                    ${injectPost}`);
+
+                this._shader = shader;
+
+            }
+
+
             this.materials['untiled'].toneMapping = false;
 
-            const geometry = new THREE.PlaneGeometry(this.dims[0] / this.mapConfig.scale, this.dims[1] / this.mapConfig.scale, 0.5 * this.dims[0], 0.5 * this.dims[1]);
+            const geometry = new THREE.PlaneGeometry(this.dims[0] / this.mapConfig.scale, this.dims[1] / this.mapConfig.scale, parseInt(12 * this.dims[0] / this.mapConfig.scale), parseInt(12 * this.dims[1] / this.mapConfig.scale));
             const plane = new THREE.Mesh(geometry, this.materials['untiled']);
-            // plane.position.x = (-0.25 + x * 0.5) * this.dims[0] / this.mapConfig.scale;
-            // plane.position.y = (-0.25 + y * 0.5) * this.dims[1] / this.mapConfig.scale;
-            
+
             this.geometryGroup.add(plane);
-            
-            // tiled map
 
-
-            /* 
-
-            let j = 0;
-            for(var y = 1; y > -1; y--) {
-                for(var x = 0; x < 2; x++) {
-                    this.materials[x + '_' + y] = new THREE.MeshStandardMaterial({
-                        map: this.texLoaded[0][j],
-                        // aoMap: texLoaded[3],
-                        displacementMap: this.texLoaded[1][j],
-                        alphaMap: this.texLoaded[2][j],
-                        displacementScale: 0.5, // 0.6,
-                        displacementBias: 0,
-                        transparent: true,
-                        emissiveMap: this.texLoaded[0][j],
-                        emissive: new THREE.Color(0xffffff),
-                        // normalMap: this.texLoaded[2],
-                        // normalScale: new THREE.Vector2(1.0, 1.0),
-                        // normalMapType: THREE.TangentSpaceNormalMap,
-
-
-                    });
-
-                    this.materials[x + '_' + y].toneMapping = false;
-
-                    const resolution = j <= 1 ? 0.05 : 0.005;
-
-                    const geometry = new THREE.PlaneGeometry(0.5 * this.dims[0] / this.mapConfig.scale, 0.5 * this.dims[1] / this.mapConfig.scale, resolution * this.dims[0], resolution * this.dims[1]);
-                    const plane = new THREE.Mesh(geometry, this.materials[x + '_' + y]);
-                    plane.position.x = (-0.25 + x * 0.5) * this.dims[0] / this.mapConfig.scale;
-                    plane.position.y = (-0.25 + y * 0.5) * this.dims[1] / this.mapConfig.scale;
-                    
-                    this.geometryGroup.add(plane);
-                    j++;
-                }
-            }
-            */
             
             this.renderer.setAnimationLoop(this.animate.bind(this));
             
@@ -634,12 +805,16 @@ const m = {
             
             this.geometryGroup.rotateZ(Math.PI);
 
-            console.log(this.geometryGroup);
             this.callback();
+
+
+            plane.position.y += this.mapConfig.mapCentreOffsetY;
         }
     },
 
-    animate: function() {
+    animate: function(timestamp) {
+
+        this.FPSCounter.update(timestamp);
 
         this.frame++;
         const y = this.camera.position.y;
@@ -649,14 +824,24 @@ const m = {
 
         if (this.spherePhase > this.maxSpherePhase) {
             this.spherePhase = 0;
+
         }
        
         this.activeSphere.scale.set(this.spherePhase * 2, this.spherePhase * 2, this.spherePhase * 2);
-        this.sMaterialActive.opacity = (this.maxSpherePhase - this.spherePhase) * this.activeOpacityFactor;
+        // this.sMaterialActive.opacity = (this.maxSpherePhase - this.spherePhase) * this.activeOpacityFactor;
         
+        if(this._shader) {
+            this._shader.uniforms['uLodPhase'].value = this.lodPhase.value;
+        }
 
-        // let compassAngle = Math.atan()
-        // gsap.set('#compass', { transform: 'rotate(-' + parseFloat(angle * (180 / Math.PI)) + 'deg)' })
+        if(this.timeline.continuousYear != this._year) {
+            this._year = this.timeline.continuousYear;
+            const cd = this.spieler.clusterDensities(this._year);
+            for(var i in cd) {
+                this._shader.uniforms['uHotspot' + i].value.z = cd[i];
+                this.inset._shader.uniforms['uHotspot' + i].value.z = cd[i];
+            }
+        }
 
         if (this.spin) {
             const dx = this.lookAt.x - this.camera.position.x;
@@ -664,9 +849,17 @@ const m = {
 
             const r = Math.sqrt(dx * dx + dy * dy);
 
-            let angle = Math.PI / 2 + 0.75 * Math.sin(this.spinPhase);
+            let angle = Math.PI / 2 + 0.25 * Math.sin(this.spinPhase);
             // console.log(angle);
-            this.spinPhase += this.spinRate;
+
+            if(this.spinFree) {
+                this.spinPhase += this.spinRate;
+                if (this.spinRate < this.spinRateMax) {
+                    this.spinRate += this.spinRateInc;
+                }
+
+                this.spinPhase = this.spinPhase % (Math.PI * 2);
+            }
 
             // update compass
             let degrees = angle * 180 / Math.PI;
@@ -674,11 +867,6 @@ const m = {
             gsap.set('#compass', {
                 transform: 'rotate(' + parseFloat(-degrees) + 'deg)'
             });
-
-
-            if (this.spinRate < this.spinRateMax) {
-                this.spinRate += this.spinRateInc;
-            }
 
 
             this.cameraSpinOffset.setX(-r * Math.cos(angle));
@@ -693,24 +881,9 @@ const m = {
 
         }
 
-
-        /* this.vMesh.material.uniforms.cameraPos.value.copy( this.camera.position );
-        this.vMesh.material.uniforms.threshold.value = 0.525 + 0.05 * Math.sin(this.frame / 100);
-        this.vMesh.rotation.y = - performance.now() / 15000;
-
-
-        this.vMesh.material.uniforms.fogNear.value = this.fog.near;
-        this.vMesh.material.uniforms.fogFar.value = this.fog.far;
-
-        this.vMesh.material.uniforms.frame.value += 5;
-        */
-
         this.renderer.render(this.scene, this.camera);
 
-
-
         landmarks.render(this.scene, this.camera);
-        // pivotGroup.rotateY(0.0025);
 
     },
 

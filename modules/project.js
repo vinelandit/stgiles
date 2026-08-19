@@ -10,7 +10,6 @@ class Project {
     this.ymax = this.mercY(this.options.northRad);
     this.xFactor = (this.options.width / this.options.scale) / (this.options.eastRad - this.options.westRad);
     this.yFactor = (this.options.height / this.options.scale) / (this.ymax - this.ymin);
-    console.log(this.ymin, this.ymax, this.xFactor);
     this.mode = this.options.mode ? this.options.mode : 'equirectangular'
   }
 
@@ -24,13 +23,13 @@ class Project {
     return Math.log(Math.tan(lat / 2 + Math.PI / 4)); 
   }
 
-  ll2xy(lat, lon) {
-    const result = this.mode == 'equirectangular' ? this.ll2xyEquirec(lat, lon) : this.ll2xyMerc(lat, lon);
+  ll2xy(lat, lon, overrideInvert = false) {
+    const result = this.mode == 'equirectangular' ? this.ll2xyEquirec(lat, lon, overrideInvert) : this.ll2xyMerc(lat, lon, overrideInvert);
     
     return result;
   }
 
-  ll2xyMerc(lat, lon) {
+  ll2xyMerc(lat, lon, overrideInvert = false) {
     lat = this.deg2rad(lat);
     lon = this.deg2rad(lon);
     let x = lon;
@@ -38,29 +37,34 @@ class Project {
     x = (x - this.options.westRad) * this.xFactor;
     y = (this.ymax - y) * this.yFactor; // y points south
     // return [x - this.options.width / 2, y + this.options.height / 2];
-    if(this.options.invert) {
+    if(this.options.invert && !overrideInvert) {
       return [- (x - (this.options.width / this.options.scale) / 2), - (y - (this.options.height / this.options.scale) / 2) ];
     } else {
-      return [x, y ];
+      return [x, y + this.options.offsetY ];
     }
     
   }
 
-  ll2xyEquirec(lat, lon) {
+  ll2xyEquirec(lat, lon, overrideInvert = false) {
 
     // Determine the map scale (points per degree)
     let x = this.options.width * ( (lon - this.options.west) / (this.options.east - this.options.west));
 
     let y = this.options.height - ( this.options.height * ( (lat - this.options.south) / (this.options.north - this.options.south) ) );
 
+    y -= this.options.offsetY;
+
     x /= this.options.scale;
     y /= this.options.scale;
 
-    if(this.options.invert) {
+
+
+    if(this.options.invert && !overrideInvert) {
       x = - (x - (this.options.width / this.options.scale) / 2);
       y = - (y - (this.options.height / this.options.scale) / 2);
+    } 
 
-    }
+  
 
     return [x, y];
       

@@ -9,67 +9,136 @@
 	</head>
 	
 	<body>
-		<div id="globeViz"></div>
-		<div id="fifoOuter">
-			<div id="fifo">
-		
-			</div>
+		<!-- <div id="debug">
+			<input id="x1" value="20" placeholder="x1">
+			<input id="x2" value="18" placeholder="x2">
+		</div> -->
+		<div id="overviewTitle">
+			<h2>Overview of records <span class="ph_first_year"></span> - 1900<br/>with key locations</h2>
+			<h3 class="ph_final_description"></h3>
 		</div>
+		<div id="overviewFrame">
+			<h4 class="continuousYear"></h4>
+			<div id="ofTitle">Estimated number of <span class="ph_surname_plural"></span> at this time <div class="population"></div></div>
+		</div>
+		<div id="backgroundFill"></div>
+		<div id="mapHeading">
+			<div id="mapHeadingInner">Families of Scotland</div>
+		</div>
+		<div id="bigName">
+			
+			<div id="origins">
+				<div id="originsInner">
+					<svg id="originsSVG" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+					  
+
+					  <g id="rotate">
+					  
+					  </g>
+					</svg>
+				</div>
+			</div>
+			<svg class="scroll" viewBox="0 0 630 120" xmlns="http://www.w3.org/2000/svg">
+			  
+			  <defs>
+			  <path
+			    id="MyPath"
+			    fill="none"
+			    stroke="red"
+			    d="M20,70 C244.5,1 438.5,170 600.5,65" />
+			  </defs>
+
+			  <text text-anchor="middle" style="font-size:60px">
+			    <textPath class="ph_surname" startOffset="50%" href="#MyPath"></textPath>
+			  </text>
+			</svg> 
+		</div>
+
+		
+		
 		
 		<div id="keyboard-holder">
 			<div class="simple-keyboard"></div>
 		</div>
-		<button class="restart">Restart</button>
+		<div id="restartHolder"><button class="restart">Restart</button></div>
+		<button class="overview">Jump to Overview</button>
 		<div id="qrHolder">
-			<img id="qr" alt="qr" />
 			<div id="qrBlurb">
-				<p>Get the journey on your phone!</p>
-				<p class="small">Scan the QR code for a mobile summary.</p>
+				<p>Free digital souvenir</p>
+				<!-- <p class="small">Scan the QR code for a mobile summary.</p> -->
 			</div>
+			<img id="qr" alt="qr" />
 			
 		</div>
 		<div id="panels">
-			<div class="panel" id="p_home">
-				<div class="mainInner">
-			      <div class="centrePanel">
-			        <h1>Families of Scotland</h1>
-			        <h2>A portal to Scottish ancestry.</h2>
-			        <button data-id="where" class="btnNextPanel">Start</button>
-			      </div>
-			    </div>
+
+			<button class="restartPanel">Restart</button>
+
+			<div id="globeViz">
+				<div id="globeVizInner"></div>	
 			</div>
+
+			<div class="panels_heading">
+	       		<img id="stgiles_logo" src="images/stgiles_logo.png" />
+	       		<h1><img src="images/title.png" /></h1>
+	        	<h2 class="default_heading">A portal to Scottish ancestry</h2>
+	        	<h2 class="previous_visitors_heading"><span class="ph_surname_plural"></span> are spread far and wide</span></h2>
+	        	<h2 class="first_visitor_heading">Welcome, first of the <span class="ph_surname_plural"></span> to take part!</span></h2>
+	       	</div>
+	       	<div class="panels_underlay"></div>
+	       	<div class="panels_background"></div>
+			<div class="panel" id="p_home">
+				
+		       
+
+		       	<div class="centrePanel">
+		       		<div id="fifoOuter">
+		       			<div id="fifoHeading">Recent visitors</div>
+						<div id="fifoHolder">
+							<div id="fifo">
+					
+							</div>
+						</div>
+					</div>
+					<h3>Explore your family's Scottish past</h3>
+		        	<button data-id="name" class="btnNextPanel">Start</button>
+		    	</div>
+			      
+			   
+			</div>
+			<div class="panel" id="p_name">
+				
+					
+	       			<div class="bottomPanel">
+				        <div class="nameOuter">
+				        	<div id="searchResults"></div>
+				        	<input placeholder="Start typing, then tap the right result..." autocomplete="off" id="searchName" type="text" />
+				        	<p>Start by typing a family name, then tap to choose one from the list.</p>
+				        	
+				        </div>
+			        </div>
+			      
+			    
+			</div>
+			
 			<div class="panel" id="p_where">
 				
-			      <div class="topPanel">
-			        <h2>Where are you from?</h2>
-			        <h3>We get visitors from all around the globe. What country are you from?</h3>
-			      </div>
+			      
 			      <div class="bottomPanel">
+			      	
 			        <div class="origin">
-			        	<input placeholder="Start typing your country..." autocomplete="off" id="countrySearch" type="text" />
-			        	<button data-id="name" class="btnNextPanel">Skip</button>
 			        	<div id="countryResults"></div>
+			        	<input placeholder="Start typing your country..." autocomplete="off" id="countrySearch" type="text" />
+			        	<button data-id="interstitial" class="btnNextPanel">Skip</button>
+			        	<p>We get visitors from all around the globe. What country are you from?</p>
+
 			        </div>
 			       
 			        
 			      </div>
 			    
 			</div>
-			<div class="panel" id="p_name">
-				
-					<div class="topPanel">
-				        <h1>Scottish Ancestry?</h1>
-	       				<h2>Start typing the surname you wish to search for, then tap to select it from the list.</h2>
-	       			</div>
-	       			<div class="bottomPanel">
-				        <div class="nameOuter">
-				        	<input placeholder="Start typing, then tap the right result..." autocomplete="off" id="searchName" type="text" />
-				        	<div id="searchResults"></div>
-				        </div>
-			        </div>
-			      
-			    
-			</div>
+			
 			<div class="panel" id="p_interstitial">
 				<div class="mainInner">
 			        <div class="centrePanel">
@@ -92,8 +161,9 @@
 			      </div>
 			</div>
 		</div>
-
+		<div id="tlYear" class="continuousYear"></div>
 		<div id="tlOuter">
+			
 			<div id="tl">
 				<div id="tlStrip">
 					
@@ -103,6 +173,8 @@
 			</div>
 		</div>
 		<div id="inset">
+			<div id="popTitle">Estimated number of <span class="ph_surname_plural"></span> at this time <div class="population"></div></div>
+			
 			<!-- <p><span class="surname"></span> Population density</p> -->
 			<div id="insetInner">
 				<div id="insetOverlay"><div id="insetMarker"></div></div>
@@ -120,38 +192,46 @@
 		
 		<div id="loading">Loading...</div>
 
-		<div id="stats">
-			<div id="popTitle">Estimated number of <span class="ph_surname_plural"></span> in <span id="continuousYear"></span></div>
-			<div id="population"></div>
-			<!-- <div class="statRow">
-				<div class="statLabel">Births</div><div class="stat" id="births">10</div>
-			</div>
-			<div class="statRow">
-				<div class="statLabel">Deaths</div><div class="stat" id="deaths"></div>
-			</div>
-			<div class="statRow">
-				<div class="statLabel">Marriages</div><div class="stat" id="marriages"></div>
-			</div>
-			-->
-		</div>
-
 		
 
+
+		<div id="ribbon">
+			<div id="ribbonInner">
+				<div class="ph_surname">WILBERFORCE</div>
+			</div>
+		</div>
+		
+		<div id="frame">
+			<div id="frameInner">
+				
+			</div>
+		</div>
+		
+		<div id="additional">
+			<div id="additionalInner">
+				<img id="nrs_logo" src="images/nrs_logo.png" />
+				<p>This experience is based on records of births, deaths and marriages from the Old Parish Registers up to 1855 and civil registration thereafter.</p>
+				<p>The dataset was provided by the National Records of Scotland.</p>
+			</div>
+		</div>
+		
 		
 		<div id="descriptionHolder">
-			<div id="ribbon">
-				<div id="ribbonInner">
-					<div class="ph_surname"></div>
-				</div>
-			</div>
+			
 			<div id="descriptionInner">
 				<p id="description"></p>
 				<p id="historical"></p>
 			</div>
 		</div>
+
+		<div id="navOverview">
+			<div class="back">Back</div>
+			<button class="restartOverview">Restart</button>
+		</div>
+
 		<div id="nav">
-			<div id="back">Back</div>
-			<div id="next">Next</div>
+			<div class="back">Back</div>
+			<div class="next">Next</div>
 		</div>
 		
 		<div id="begin">Begin</div>
@@ -160,6 +240,8 @@
 		<script src="./js/jquery-3.7.1.min.js"></script>
 		<script src="./js/gsap.min.js"></script>
 		<script src="./js/turf.min.js"></script>
+		<script src="./js/fps-counter.js"></script>
+		
 		<script type="module" src="./main.js"></script>
 	</body>
 </html>
