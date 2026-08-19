@@ -1,4 +1,4 @@
-import{u as l,s as n,p as a,o as p}from"./ui-BOgU7RgJ.js";const c={tpl:`
+import{s as n,p as a,o as p,u as l}from"./ui-C2ZZwPyJ.js";const c={tpl:`
     <div class="mobile_entry">
       <h2>{year}</h2>
       <p>{text}</p>

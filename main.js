@@ -43,8 +43,15 @@ const main = {
 
 
     this.geodbscan = new GeoDBSCAN();
-    this.dbRoot = 'http://localhost:8888';
-    this.dataRoot = 'http://localhost:8888/api';
+
+    if(document.URL.indexOf('localhost') > -1) {
+      this.dbRoot = 'http://localhost:8888';
+      this.dataRoot = 'http://localhost:8888/api';
+    } else {
+      this.dbRoot = 'https://ray.scot/stgiles';
+      this.dataRoot = 'https://ray.scot/stgiles';
+    }
+    
     // this.apiRoot = 'https://ray.scot/stgiles';
     // this.remoteRoot = 'https://ray.scot/stgiles2/dist';
     
