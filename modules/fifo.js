@@ -1,9 +1,9 @@
 const fifo = {
 
-	tpl: `<div class="fifoRow" data-index="{index}">{surname}, {origin}</div>`,
+	tpl: `<div class="fifoRow" data-index="{index}">{surname}<span>, {origin}</span></div>`,
 	target: '#fifo',
 	rowsVisible: 5,
-	rowHeight: 25,
+	rowHeight: 40,
 
 	init: function(data, reinit = false) {
 

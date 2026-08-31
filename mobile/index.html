@@ -2,13 +2,22 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Giles test mobile</title>
+		<title>Gilesx test mobile</title>
 		<link rel="stylesheet" href="../css/stylesheet.css?r=c">
+		<style>
+			html {
+				width:100%;
+				overflow-x:hidden;
+			}
+		</style>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 	</head>
 	
 	<body id="mobile">
-		
+		<div id="mobile_loading">
+			<div id="mobile_loading_inner">Loading...</div>
+		</div>
+		<div id="mapHolder"></div>
 			<h1>Scotland's People</h1>
 			<div id="ribbon">
 				<div id="ribbonInner">
@@ -16,6 +25,14 @@
 				</div>
 			</div>
 			<div id="mobile_content_target"></div>
+			<div id="footer">
+				<p>Would you be interested in a high-quality printed poster of this experience?</p>
+				<p>
+					<button class="interested" data-answer="yes">YES</button>
+					<button class="interested" data-answer="no">NO</button>
+				</p>
+			</div>
+			<div id="footerAnswered">Thank you!</div>
 		
 
 

@@ -29,23 +29,25 @@ export default {
         this.outlier = document.getElementById('outlier');
         this.activeInput = null;
         this.recordThreshold = 500; // names with fewer records than this are excluded from visualisation
-        this.inactivityTimeout = 300; // seconds
+        this.inactivityTimeout = 6000; // seconds
 
         search.init($('#searchName'), $('#searchResults'), this.recordThreshold, function(surname, id, num_records) {
             
 
-        
-            surname = _this.capitalizeFirstLetter(surname.toLowerCase());
-            _this.ph('surname', surname);
-            _this.ph('surname_plural', surname.at(-1) == 's' ? surname + 'es' : surname + 's');
-            _this.ph('id', id);
-            _this.ph('num_records', num_records.toLocaleString());
-            
+            if(num_records >= _this.recordThreshold) {
+                surname = _this.capitalizeFirstLetter(surname.toLowerCase());
+                _this.ph('surname', surname);
+                _this.ph('surname_plural', surname.at(-1) == 's' ? surname + 'es' : surname + 's');
+                _this.ph('id', id);
+                _this.ph('num_records', num_records.toLocaleString());
+                
 
-            _this.nameCallback(surname, id, num_records);
-            search.clear();
-            _this.keyboard.clearInput('searchName');
-            _this.movePanel('where');
+                _this.nameCallback(surname, id, num_records);
+                search.clear();
+                _this.keyboard.clearInput('searchName');
+                if(!$('body').hasClass('changer')) _this.movePanel('where');
+            }
+            
            
             
         }, dbRoot);
@@ -74,6 +76,14 @@ export default {
 
         $('.btnNextPanel').click(function(){
             const targetID = $(this).attr('data-id');
+            if($(this).attr('data-skip') == 'yes') {
+                // user is skipping country selection, save partial database entry
+                _this.app.state.origin = '';
+                _this.app.state.lat = 0;
+                _this.app.state.lon = 0;
+                _this.app.state.noAncestry = 0;
+                _this.app.saveState();
+            }
             _this.movePanel(targetID);
         });
 
@@ -90,8 +100,7 @@ export default {
         });
 
         $('.overview').click(function() {
-            if ($('#nav').hasClass('disabled') || _this.m.flying) return false;
-            _this.goNext( $('.tlEvent').length , -1, true);
+            _this.skipToOverview();
 
         });
 
@@ -120,6 +129,46 @@ export default {
             _this.setInactivityTimeout();
         });
 
+        document.addEventListener("keydown", (event) => {
+            if(event.key == '1') {
+                _this.showChanger();
+            }
+        })
+
+    },
+
+    skipToOverview: function() {
+        if ($('#nav').hasClass('disabled') || this.m.flying) return false;
+
+        this.goNext( $('.tlEvent').length , -1, true);
+    },
+
+    showChanger: function() {
+        gsap.set('#panels', {
+            display: 'block'
+        });
+        gsap.set('.panel', {
+            display: 'none'
+        });
+        gsap.set('.panel#p_name', {
+            display: 'block',
+            opacity: 1,
+            scale: 1
+        });
+        
+
+        this.mapKeyboard('name');
+        this.showKeyboard('name');
+        $('body').addClass('changer');
+    },
+
+    hideChanger: function() {
+        gsap.set('#panels', {
+            display: 'none'
+        });
+        this.hideKeyboard();
+        $('body').removeClass('changer');
+
     },
 
     capitalizeFirstLetter: function(val) {
@@ -140,10 +189,17 @@ export default {
 
     restart: function() {
         gsap.globalTimeline.clear();
+
+        this.mapKeyboard('name');
+        this.keyboard.clearInput('searchName');
+        this.mapKeyboard('where');
+        this.keyboard.clearInput('countrySearch');
+        $('#countrySearch').val('');
         this.showPanels();
         this.movePanel('home');
         this.restartCallback();
         this.hideMap();
+
     },
 
     showMap: function() {
@@ -259,7 +315,7 @@ export default {
 
     showQR: function(id, rootURL) {
         console.log('show QR', id, rootURL);
-        QRCode.toDataURL(rootURL + '/mobile/?id=' + id)
+        QRCode.toDataURL(rootURL + '/mobile/?id=' + id + '&dbID=' + this.app.state.dbID)
           .then(url => {
             $('#qr').attr('src', url);
           })
@@ -271,8 +327,6 @@ export default {
     showPanels: function(skip) {
 
         const _this = this;
-
-
 
         // hide containers
         
@@ -321,11 +375,11 @@ export default {
 
         
 
-        $('#p_home').show();
+        /* $('#p_home').show();
         gsap.to('#p_home', {
             opacity: 1,
             duration: 0.5
-        });
+        }); */
 
 
     },
@@ -334,23 +388,57 @@ export default {
         $('#panels').fadeOut(500);
     },
 
+    hideKeyboard: function() {
+        console.log('hiding keyboard');
+        gsap.to('#keyboard-holder', {
+            opacity: 0,
+            y: 100,
+            duration: 0.5,
+            onComplete: function() {
+                gsap.set('#keyboard-holder', {
+                    display: 'none'
+                });
+            }
+        });
+    },
+
+    showKeyboard: function(id) {
+        console.log('showing keyboard', id);
+        if (id == 'name') {
+            gsap.set('#keyboard-holder', {
+                display: 'block',
+                opacity: 0,
+                y: 100
+            });
+            gsap.to('#keyboard-holder', {
+                opacity: 1,
+                y: 0,
+                delay: 0.5,
+                duration: 1
+            });
+        } else {
+            gsap.to('#keyboard-holder', {
+                opacity: 1,
+                display: 'block',
+                y: 120,
+                delay: 0.0,
+                duration: 0.5
+            });
+        }
+        
+    },
+
     movePanel: function(id) {
         
         const _this = this;
 
+        $('body').removeClass('someCountryResults');
+        const curPanelID = $('.panel.active').attr('id');
 
-        if(id != this.curPanelID) {
-            gsap.to('#keyboard-holder', {
-                opacity: 0,
-                y: 100,
-                duration: 0.5,
-                onComplete: function() {
-                    gsap.set('#keyboard-holder', {
-                        display: 'none'
-                    });
-                }
-            });
-            const me = $('.panel#p_' + this.curPanelID);
+        console.log('curnext', curPanelID, id);
+        if(('p_' + id) != curPanelID) {
+            
+            const me = $('.panel#' + curPanelID);
             const next = $('.panel#p_' + id);
             gsap.set(next, {
                 scale: 0.5,
@@ -372,27 +460,25 @@ export default {
                 duration: 0.5,
                 ease: 'power1.inOut',
                 onComplete: function() {
-                    if(id == 'where' || id =='name') {
-                        gsap.set('#keyboard-holder', {
-                            display: 'block',
-                            opacity: 0
-                        });
-                        gsap.to('#keyboard-holder', {
-                            opacity: 1,
-                            y: 0,
-                            delay: 0.75,
-                            duration: 1
-                        });
-                        _this.mapKeyboard(id);
-                    }
+
+                    
                 }
             });
+            if(id == 'name' || id == 'where') {
+                this.showKeyboard(id);
+                this.mapKeyboard(id);
+            } else {
+                this.hideKeyboard();
+            }
         }
+
+        $('.panel').removeClass('active');
+        $('.panel#p_' + id).addClass('active');
 
         this.curPanelID = id;
 
         if(id == 'interstitial') {
-
+            this.hideKeyboard();
             this.prepareInterstitialCallback();
 
             gsap.set(this.pb, {
@@ -422,13 +508,7 @@ export default {
             });
         }
 
-        if(id == 'name') {
-            gsap.to('.panels_underlay', {
-                y: 0,
-                opacity: 1,
-                duration: 1
-            });
-        } else {
+        if(id != 'name') {
             gsap.to('.panels_underlay', {
                 y: 100,
                 opacity: 0,
@@ -440,13 +520,10 @@ export default {
 
 
     mapKeyboard: function(id) {
-        
         this.keyboard.setOptions({
             inputName: id == 'where' ? 'countrySearch' : 'searchName'
         });
-
         this.activeInput = id == 'where' ? $('#countrySearch') : $('#searchName');
-        
     },
 
     hideBegin: function() {
@@ -469,11 +546,11 @@ export default {
     },
 
     showBegin: function() {
-        gsap.set(this.begin, {
+        gsap.set([this.begin, '#ribbon', '#mapHeading'], {
             display: 'block',
             opacity: 0
         });
-        gsap.to(this.begin, {
+        gsap.to([this.begin, '#ribbon', '#mapHeading'], {
             opacity: 1,
             transform: 'translateY(0)',
             duration: 1,

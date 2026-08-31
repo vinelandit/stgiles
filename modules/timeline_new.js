@@ -80,6 +80,7 @@ export default {
 
     scrollTo: function(year) {
 
+        const tf = $('body').hasClass('changer') ? 0.1 : 1;
         const _this = this;
 
         const cardinalYear = (year - this.startYear) / 10;
@@ -88,7 +89,7 @@ export default {
 
         gsap.to('#tlPointer', {
             left: targetX + '%',
-            duration: 5,
+            duration: tf * 5,
             ease: 'power1.inOut'
         });
 
@@ -98,7 +99,7 @@ export default {
 
         gsap.to(this, {
             phase: year,
-            duration: 5,
+            duration: tf * 5,
             ease: 'power1.inOut',
             onUpdate: function() {
 

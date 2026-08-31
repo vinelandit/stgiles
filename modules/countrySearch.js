@@ -22,6 +22,7 @@ const countrySearch = {
         
     });
   },
+
   
   search: function(str) {
     const matches = [];
@@ -49,7 +50,6 @@ const countrySearch = {
         }
       }
     }
-    
     return this.parse(matches);
 
   },
@@ -65,6 +65,11 @@ const countrySearch = {
       html += tpl;
     }
     $('#countryResults').html(html);
+    if(matches.length > 0) {
+      $('body').addClass('someCountryResults');
+    } else {
+      $('body').removeClass('someCountryResults');
+    }
   }
 }
 

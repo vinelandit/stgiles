@@ -5,9 +5,9 @@
 		<title>Giles test map</title>
 		<link rel="stylesheet" href="./css/choices.min.css?r=c">
 		
-		<script type="module" crossorigin src="./assets/main-DAlH6JqS.js"></script>
-		<link rel="modulepreload" crossorigin href="./assets/ui-C2ZZwPyJ.js">
-		<link rel="stylesheet" crossorigin href="./assets/ui-s6E-Telq.css">
+		<script type="module" crossorigin src="./assets/main-BO8ufR47.js"></script>
+		<link rel="modulepreload" crossorigin href="./assets/ui-CHbcfOcT.js">
+		<link rel="stylesheet" crossorigin href="./assets/ui-DNwwzrto.css">
 	</head>
 	
 	<body>
@@ -15,9 +15,17 @@
 			<input id="x1" value="20" placeholder="x1">
 			<input id="x2" value="18" placeholder="x2">
 		</div> -->
+		<div class="illustrations">
+			<div id="lance" class="illustration"><img src="./images/lance.png" /></div>
+			<div id="unicorn" class="illustration"><img src="./images/unicorn.png" /></div>
+			<div id="mermaid" class="illustration"><img src="./images/mermaid.png" /></div>
+			<div id="ship" class="illustration"><img src="./images/ship.png" /></div>
+		</div>
 		<div id="overviewTitle">
-			<h2>Overview of records <span class="ph_first_year"></span> - 1900<br/>with key locations</h2>
-			<h3 class="ph_final_description"></h3>
+			<div id="overviewTitleInner">
+				<h2>Overview of records <span class="ph_first_year"></span> - 1900<br/>with key locations</h2>
+				<h3 class="ph_final_description"></h3>
+			</div>
 		</div>
 		<div id="overviewFrame">
 			<h4 class="continuousYear"></h4>
@@ -27,34 +35,7 @@
 		<div id="mapHeading">
 			<div id="mapHeadingInner">Families of Scotland</div>
 		</div>
-		<div id="bigName">
-			
-			<div id="origins">
-				<div id="originsInner">
-					<svg id="originsSVG" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
-					  
-
-					  <g id="rotate">
-					  
-					  </g>
-					</svg>
-				</div>
-			</div>
-			<svg class="scroll" viewBox="0 0 630 120" xmlns="http://www.w3.org/2000/svg">
-			  
-			  <defs>
-			  <path
-			    id="MyPath"
-			    fill="none"
-			    stroke="red"
-			    d="M20,70 C244.5,1 438.5,170 600.5,65" />
-			  </defs>
-
-			  <text text-anchor="middle" style="font-size:60px">
-			    <textPath class="ph_surname" startOffset="50%" href="#MyPath"></textPath>
-			  </text>
-			</svg> 
-		</div>
+		
 
 		
 		
@@ -67,14 +48,14 @@
 		<div id="qrHolder">
 			<div id="qrBlurb">
 				<p>Free digital souvenir</p>
-				<!-- <p class="small">Scan the QR code for a mobile summary.</p> -->
+				
 			</div>
 			<img id="qr" alt="qr" />
-			
+			<p class="small">Scan QR code for a mobile version of this information.</p>
 		</div>
 		<div id="panels">
 
-			<button class="restartPanel">Restart</button>
+			
 
 			<div id="globeViz">
 				<div id="globeVizInner"></div>	
@@ -84,8 +65,7 @@
 	       		<img id="stgiles_logo" src="images/stgiles_logo.png" />
 	       		<h1><img src="images/title.png" /></h1>
 	        	<h2 class="default_heading">A portal to Scottish ancestry</h2>
-	        	<h2 class="previous_visitors_heading"><span class="ph_surname_plural"></span> are spread far and wide</span></h2>
-	        	<h2 class="first_visitor_heading">Welcome, first of the <span class="ph_surname_plural"></span> to take part!</span></h2>
+	        	
 	       	</div>
 	       	<div class="panels_underlay"></div>
 	       	<div class="panels_background"></div>
@@ -103,41 +83,72 @@
 						</div>
 					</div>
 					<h3>Explore your family's Scottish past</h3>
-		        	<button data-id="name" class="btnNextPanel">Start</button>
+		        	<button data-id="name" class="btnNextPanel">Enter name</button>
 		    	</div>
 			      
 			   
 			</div>
 			<div class="panel" id="p_name">
 				
-					
-	       			<div class="bottomPanel">
-				        <div class="nameOuter">
-				        	<div id="searchResults"></div>
-				        	<input placeholder="Start typing, then tap the right result..." autocomplete="off" id="searchName" type="text" />
-				        	<p>Start by typing a family name, then tap to choose one from the list.</p>
-				        	
-				        </div>
+				
+       			<div class="bottomPanel">
+			        <div class="nameOuter">
+			        	<div id="searchResults"></div>
+			        	<input placeholder="Enter name..." autocomplete="off" id="searchName" type="text" />
+			        	<p>Start typing a family name, then tap the right one in the list.</p>
+			        	<p id="closeHolder"><button class="restartPanel">Close</button></p>
 			        </div>
+		        </div>
 			      
 			    
 			</div>
 			
 			<div class="panel" id="p_where">
-				
-			      
-			      <div class="bottomPanel">
-			      	
-			        <div class="origin">
-			        	<div id="countryResults"></div>
-			        	<input placeholder="Start typing your country..." autocomplete="off" id="countrySearch" type="text" />
-			        	<button data-id="interstitial" class="btnNextPanel">Skip</button>
-			        	<p>We get visitors from all around the globe. What country are you from?</p>
+				<div id="bigName">
+			
+					<div id="origins">
+						<div id="originsInner">
+							<div id="flag_spacer">
+								<img src="./images/FlagPNG-1920x1080.png" />
+							</div>
+							<div id="name_spacer">
+								<h1 class="ph_surname"></h1>
+								<h3 class="previous_visitors_heading"><span class="ph_surname_plural"></span> are spread far and wide</span></h3>
+		        				<h3 class="first_visitor_heading">Welcome, first of the <span class="ph_surname_plural"></span> to take part!</span></h3>
+		        			</div>
+							<svg id="originsSVG" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+							  
 
-			        </div>
-			       
-			        
-			      </div>
+							  <g id="rotate">
+							  
+							  </g>
+							</svg>
+						</div>
+					</div>
+
+			  </div>
+			      
+		      <div class="bottomPanel">
+		      	
+		        <div class="origin">
+		        	<div id="countryResults"></div>
+		        	<input placeholder="Enter location..." autocomplete="off" id="countrySearch" type="text" />
+		        	
+		        	
+		        	<div id="welcome_spacer">
+			        	<div id="fussy">
+			        		
+		        		</div>
+
+	        			<h2>Where is home for you?</h2>
+		        		<p id="where_instruction">Start typing a country (or US state), then tap the right one in the list.</p>
+		        		<p id="where_chooser"><button class="restartPanel">Restart</button><button data-skip="yes" data-id="interstitial" class="btnNextPanel">Skip</button></p>
+	        		</div>
+
+		        </div>
+		       
+		        
+		      </div>
 			    
 			</div>
 			
@@ -145,8 +156,7 @@
 				<div class="mainInner">
 			        <div class="centrePanel">
 			          <h3><img src="./images/nrslogo.png" alt="NRS logo" /></h3>
-			          <h2><span class="ph_num_records"></span> records located for <div class="ph_surname"></div>
-			  				in the National Records of Scotland database.</h2>
+			          <h2><span class="ph_num_records"></span> records located for <div class="ph_surname"></div></h2>
 				          <div class="progressBar">
 				            <div class="progressBarInner"></div>
 				          </div>
@@ -199,7 +209,18 @@
 
 		<div id="ribbon">
 			<div id="ribbonInner">
-				<div class="ph_surname">WILBERFORCE</div>
+				<div id="crest">
+					<img src="./images/Crest-placeholder.png" />
+				</div>
+				<svg viewBox="0 0 2000 369" xmlns="http://www.w3.org/2000/svg">
+							  
+					<image href="./images/Title-Ribbon.png?r=yes" height="369" width="2000" x="0" y="0" />
+				  	<path id="MyPath" stroke="#ffffff" stroke-width="1" fill="none" opacity="1" stroke-linecap="round" stroke-linejoin="round" d="M530,255 C 916,242 1210,153 1504,198" />
+
+				  	<text>
+				  		<textPath href="#MyPath" class="ph_surname"></textPath>
+				  	</text>
+				</svg>
 			</div>
 		</div>
 		

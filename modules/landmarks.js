@@ -7,7 +7,7 @@ const landmarks = {
 	data: [],
 	activeParish: null,
 
-	init: function(scene, camera, project) {
+	init: function(scene, camera, project, isMobile) {
 
 		const _this = this;
 
@@ -18,7 +18,7 @@ const landmarks = {
 		this.x1 = 16;
 		this.x2 = 12;
 		this.labelRenderer = new CSS2DRenderer();
-		this.labelRenderer.setSize( window.innerWidth, (window.innerHeight)); // + 200
+		this.labelRenderer.setSize( window.screen.width, isMobile ? window.screen.width : window.screen.height); // + 200
 		this.labelRenderer.domElement.style.position = 'absolute';
 		this.labelRenderer.domElement.style['pointer-events'] = 'none';
 
@@ -27,81 +27,34 @@ const landmarks = {
 		
 		document.getElementById('mapHolder').appendChild( this.labelRenderer.domElement );
 
-		// add active parish marker
-		const parish = new THREE.Group();
-		
-		parish.position.set(0, 0, 0);
-		scene.add(parish);
-		
-		const label = document.createElement('label');
-		label.className = 'landmark';
-		label.classList.add('parish');
-
-		const v = document.createElement('video');
-		v.src = 'videos/flag_loop.webm';
-		v.loop = true;
-		v.autoplay = true;
-		v.muted = true;
-		v.controls = false;
-		label.appendChild(v);
-
-		const span = document.createElement('span');
-		span.textContent = 'PENDING';
-		label.appendChild(span);
-		const label3 = new CSS2DObject(label);
-		label3.position.set(0, 0.1, 0);
-		label3.center.set(0, 0);
-		parish.add(label3);
-
-		/* const buf = new THREE.BufferGeometry();
-		const mat = new THREE.LineBasicMaterial( { vertexColors: false, color: new THREE.Color(0x000000), transparent: true } );
-		const positions = [
-			new THREE.Vector3(0, 0,   0),
-			new THREE.Vector3(0, 0.2, 0)
-		];
-
-		buf.setFromPoints(positions);
-		const line = new THREE.Line(buf, mat);
-		parish.add(line);
-		*/
-		parish.renderOrder = -100000;
-		this.activeParish = parish;
-
-		for(var i = 0; i < ld.length; i++) {
-			const pin = new THREE.Group();
-			const xy = this.project.ll2xy(ld[i].lat, ld[i].lon);
-
-			xy[1] += this.project.options.mapCentreOffsetY;
-
-			pin.position.set(xy[0], 0, xy[1]);
-			scene.add(pin);
+		if(!isMobile) {
+			// add active parish marker
+			const parish = new THREE.Group();
+			
+			parish.position.set(0, 0, 0);
+			scene.add(parish);
 			
 			const label = document.createElement('label');
 			label.className = 'landmark';
-			label.id = 'landmark' + i;
+			label.classList.add('parish');
 
-			const pop = parseInt(ld[i].pop.replace(',', ''));
-			if(pop > 100000) {
-				label.classList.add('large');
-			} else if (pop > 50000) {
-				label.classList.add('medium'); 
-			} else if (pop > 20000) {
-				label.classList.add('small');
-			} else {
-				label.classList.add('village');
-			}
+			const v = document.createElement('video');
+			v.src = 'videos/flag_loop.webm';
+			v.loop = true;
+			v.autoplay = true;
+			v.muted = true;
+			v.controls = false;
+			label.appendChild(v);
 
 			const span = document.createElement('span');
-			span.textContent = ld[i].name;
+			span.textContent = 'PENDING';
 			label.appendChild(span);
 			const label3 = new CSS2DObject(label);
-			label3.position.set(0, 0.0, 0);
+			label3.position.set(0, 0.1, 0);
 			label3.center.set(0, 0);
-			pin.add(label3);
+			parish.add(label3);
 
-			
-			/*
-			const buf = new THREE.BufferGeometry();
+			/* const buf = new THREE.BufferGeometry();
 			const mat = new THREE.LineBasicMaterial( { vertexColors: false, color: new THREE.Color(0x000000), transparent: true } );
 			const positions = [
 				new THREE.Vector3(0, 0,   0),
@@ -110,19 +63,70 @@ const landmarks = {
 
 			buf.setFromPoints(positions);
 			const line = new THREE.Line(buf, mat);
-			pin.add(line);
+			parish.add(line);
 			*/
-			pin.renderOrder = -100000;
+			parish.renderOrder = -100000;
+			this.activeParish = parish;
 
-			this.data.push({
-				pin: pin,
-				label: label,
-				label3: label3
-			});
+			for(var i = 0; i < ld.length; i++) {
+				const pin = new THREE.Group();
+				const xy = this.project.ll2xy(ld[i].lat, ld[i].lon);
 
-			
-			
+				xy[1] += this.project.options.mapCentreOffsetY;
+
+				pin.position.set(xy[0], 0, xy[1]);
+				scene.add(pin);
+				
+				const label = document.createElement('label');
+				label.className = 'landmark';
+				label.id = 'landmark' + i;
+
+				const pop = parseInt(ld[i].pop.replace(',', ''));
+				if(pop > 100000) {
+					label.classList.add('large');
+				} else if (pop > 50000) {
+					label.classList.add('medium'); 
+				} else if (pop > 20000) {
+					label.classList.add('small');
+				} else {
+					label.classList.add('village');
+				}
+
+				const span = document.createElement('span');
+				span.textContent = ld[i].name;
+				label.appendChild(span);
+				const label3 = new CSS2DObject(label);
+				label3.position.set(0, 0.0, 0);
+				label3.center.set(0, 0);
+				pin.add(label3);
+
+				
+				/*
+				const buf = new THREE.BufferGeometry();
+				const mat = new THREE.LineBasicMaterial( { vertexColors: false, color: new THREE.Color(0x000000), transparent: true } );
+				const positions = [
+					new THREE.Vector3(0, 0,   0),
+					new THREE.Vector3(0, 0.2, 0)
+				];
+
+				buf.setFromPoints(positions);
+				const line = new THREE.Line(buf, mat);
+				pin.add(line);
+				*/
+				pin.renderOrder = -100000;
+
+				this.data.push({
+					pin: pin,
+					label: label,
+					label3: label3
+				});
+
+				
+				
+			}
 		}
+
+		
 
 		$('#x1').change(function() {
 			_this.x1 = $(this).val();

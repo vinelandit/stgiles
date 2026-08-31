@@ -19,6 +19,9 @@ const scroll = {
 
         const _this = this;
 
+        gsap.set('#welcome_spacer h3', {
+            display: 'none'
+        });
         gsap.to('h2.default_heading', {
             opacity: 0,
             duration: 0.5,
@@ -27,16 +30,15 @@ const scroll = {
                     display: 'none'
                 });
                 const s = origins.length == 0 ? 'first_visitor_heading' : 'previous_visitors_heading';
-                gsap.set('h2.' + s, {
+                gsap.set('h3.' + s, {
                     display: 'block',
                     opacity: 0
                 });
-                gsap.to('h2.' + s, {
+                gsap.to('h3.' + s, {
                     opacity: 1
                 });
             }
         });
-
 
 
         gsap.set('#bigName', {
@@ -60,7 +62,7 @@ const scroll = {
 
         $('svg#originsSVG g#rotate g').remove();
 
-        const r = 2.3;
+        const r = 4;
 
         const n = origins.length;
         const step = Math.PI * 2 / n;
@@ -69,7 +71,12 @@ const scroll = {
 
         for (var i in origins) {
 
-            const rf = 1.4 + 1.0 * Math.random();
+            // const rf = 1.2 + 1.0 * Math.random();
+            const rf = 1.2 + 0.3 * Math.abs(Math.sin(2 * Math.PI * i / n));
+            
+
+            const x0 = r * 0.5 * Math.sin(theta);
+            const y0 = r * 0.5 * Math.cos(theta);
             const x = rf * r * Math.sin(theta);
             const y = rf * r * Math.cos(theta);
             theta += step;
@@ -78,7 +85,7 @@ const scroll = {
             
 
             const newPath = document.createElementNS("http://www.w3.org/2000/svg", 'path'); //Create a path in SVG's namespace
-            newPath.setAttribute("d",`M 540 540 L ${540 + x * 60} ${540 + y * 60}`); //Set path's data
+            newPath.setAttribute("d",`M ${540 + x0 * 60} ${540 + y0 * 60} L ${540 + x * 60} ${540 + y * 60}`); //Set path's data
 
             newGroup.appendChild(newPath);
 

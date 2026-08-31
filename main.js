@@ -1,4 +1,3 @@
-
 import { m } from './modules/map3d.js';
 import { globe } from './modules/globe.js';
 import { spieler } from './modules/spieler.js';
@@ -8,16 +7,14 @@ import ui from './modules/ui.js';
 import text from './modules/text.js';
 import { scroll } from './modules/scroll.js';
 import { countrySearch } from './modules/countrySearch.js';
-import timeline from './modules/timeline_new.js';
 
-import GeoDBSCAN from "@dentreality/geodbscan";
 
 const debug = false;
 
 
 const main = {
 
-  maxVisitors: 20,
+  maxVisitors: 15,
 
   send: function(payload, callback) {
     payload.auth = "s$fsqi-928";
@@ -40,11 +37,7 @@ const main = {
 
     const _this = this;
 
-
-
-    this.geodbscan = new GeoDBSCAN();
-
-    if(document.URL.indexOf('localhost') > -1) {
+    if(false && document.URL.indexOf('localhost') > -1) {
       this.dbRoot = 'http://localhost:8888';
       this.dataRoot = 'http://localhost:8888/api';
     } else {
@@ -53,7 +46,7 @@ const main = {
     }
     
     // this.apiRoot = 'https://ray.scot/stgiles';
-    // this.remoteRoot = 'https://ray.scot/stgiles2/dist';
+    this.remoteRoot = 'https://ray.scot/stgiles2/dist';
     
     this.state = {
       origin: null,
@@ -83,14 +76,24 @@ const main = {
         _this.state.id = id;
         _this.state.num_records = num_records;
 
-        // get recent clanspeople
-        _this.send({ command: "recentClanspeople", surname: _this.state.surname}, function(data) {
-          const rc = JSON.parse(data);
-          globe.hide();
-          scroll.show(rc.origins);
-        });
+        if(!$('body').hasClass('changer')) {
+          // get recent clanspeople
+          _this.send({ command: "recentClanspeople", surname: _this.state.surname}, function(data) {
+            const rc = JSON.parse(data);
+            globe.hide();
+            scroll.show(rc.origins);
+          });
 
-        ui.movePanel('where');
+          ui.movePanel('where');
+        } else {
+          m.populate(_this.state, _this.dataRoot, pop, _this.remoteRoot, function() {
+
+            ui.skipToOverview();
+            ui.hideChanger();
+            console.log('updated changer');
+          });
+        }
+        
 
       },
       // about to show map callback
@@ -104,12 +107,15 @@ const main = {
             });
           }
         });
-        _this.populate();
+        m.populate(_this.state, _this.dataRoot, pop, _this.remoteRoot, function() {
+          _this.setUI('initial');
+        });
       },
       // restart callback
       function() {
         _this.setUI('hideAll');
         scroll.hide();
+        countrySearch.search('');
         globe.init([..._this.state.visitors], true);
       },
       // prepare interstitial callback
@@ -124,11 +130,14 @@ const main = {
 
       _this.loadVisitors(function() {
         // all elements loaded, remove loading overlay
-        globe.init([..._this.state.visitors]);
+        if(!debug) {
+
+          globe.init([..._this.state.visitors]);
+        }
         ui.hideLoading(debug);
       });
       
-    }, spieler, timeline, debug);    
+    }, spieler, debug, ui, false);    
 
 
     if(debug) {
@@ -146,19 +155,26 @@ const main = {
   },
 
   saveState: function() {
+    
+    const _this = this;
+
     // store the origin, name and ID in the database
     console.log('saving state', this.state);
-    this.state.visitors.unshift({
-      surname: this.state.surname,
-      origin: this.state.origin,
-      lat: this.state.lat,
-      lon: this.state.lon,
-      noAncestry: this.state.noAncestry
-    });
 
-    if(this.state.visitors.length > this.maxVisitors) {
-      this.state.visitors.pop();
+    if(this.state.origin != '') {
+      this.state.visitors.unshift({
+        surname: this.state.surname,
+        origin: this.state.origin,
+        lat: this.state.lat,
+        lon: this.state.lon,
+        noAncestry: this.state.noAncestry
+      });
+
+      if(this.state.visitors.length > this.maxVisitors) {
+        this.state.visitors.pop();
+      }
     }
+    
 
     this.send({ 
       command: "save", 
@@ -168,106 +184,47 @@ const main = {
       lon: this.state.lon,
       noAncestry: this.state.noAncestry
     }, function(data) {
+      data = JSON.parse(data);
       console.log('save result', data);
+      _this.state.dbID = data.id;
     });
   },
 
-  populate: function() {
-
-    const _this = this;
-    // initialise modules
-    ui.populate(this.state.surname);
-    ui.showMap();
-
-    spieler.init(this.state.surname, this.state.id, this.dataRoot, pop, function(coords, names) { 
-      
-      if(coords && _this.state.num_records > 300) {
-
-        const k = Object.keys(coords);
-
-
-        ui.ph('first_year', k[0]);
-        ui.ph('final_description', spieler.data[ spieler.data.length - 1 ].text);
-
-        const p = [];
-        const n = [];
-
-
-        for (var i in coords) {
-          p.push([ coords[i][1] * 0.25, coords[i][0] ]); // scaling down x because it's more important to thin out than y
-          n.push(names[i]);
-        }
-
-        console.log('data', p, spieler.data);
-
-        // Now we can generate our clusters
-        const clusters = _this.geodbscan.cluster(p, {
-          minPts: 2,
-          epsilon: 10000,
-        });
-
-        const suppress = [];
-
-        for(var c in clusters) {
-          let max = 0;
-          let maxID = -1;
-
-          for(var i in clusters[c]) {
-            const source = spieler.data[ clusters[c][i] ];
-            suppress.push(clusters[c][i]);
-            if(source.total > max) {
-              max = source.total;
-              maxID = clusters[c][i];
-            }
-          } 
-
-          const index = suppress.indexOf(maxID);
-          if(index > -1) {
-            suppress.splice(index, 1);
-          }
-          
-          console.log('in cluster ' + c + ', the ID of the largest cluster is ' + maxID + ' and the quantity is ' + max);
-        }
-
-
-        pop.init(_this.state.id, _this.dataRoot);
-        timeline.init(pop, coords, 1560, 1900, 'population', 'continuousYear');
-        
-
-        m.reset();
-        m.makeSpheres(coords, names, suppress);
-        m.inset.initLinks(coords);
-        
-        ui.showQR(_this.state.id, _this.remoteRoot);
-        _this.setUI('initial');
-
-        
-      } else {
-        // insufficient data for this surname -
-        // load what data we have anyway and show explanatory panel
-        pop.init(_this.state.id, _this.dataRoot, function(data) {
-          ui.movePanel('insufficient');
-          outlierSpiel.show(data, _this.state.surname, _this.state.num_records);
-        });
-        
-      }
-      
-    }, debug);
-    
-  },
 
   setUI(mode) {
+    console.log('setUI', mode);
+    const tf = $('body').hasClass('changer') ? 0.1 : 1;
     if(mode == 'hideAll') {
 
       // returning to intro panels
-      gsap.set('.panels_background, .panels_heading', {
-        display: 'block',
+      gsap.to('.illustrations', {
+        duration: 0.5,
         opacity: 0
+      });
+
+      gsap.set('.panels_background, .panels_heading', {
+        display: 'block'
       });
       gsap.to('.panels_background, .panels_heading', {
         opacity: 1,
         duration: 1,
         
+      });
+
+      $('#mapHolder').removeClass('tiltshift');
+
+      gsap.set(m.lodPhase, {
+          value: 1
+      });
+
+      gsap.to('#backgroundFill', {
+        opacity: 0,
+        duration: 1,
+        onComplete: function() {
+          gsap.set('#backgroundFill', {
+            display: 'none'
+          });
+        }
       });
 
 
@@ -291,59 +248,84 @@ const main = {
         }
       });
 
-      gsap.set('.panels_underlay', {
+      gsap.to('.panels_underlay', {
         y: 200,
-        opacity: 0
+        opacity: 0,
+        duration: 0.5
       });
       
-      $('#nrs_logo, #frame').removeClass('mapActive');
+      $('#nrs_logo, #frame').removeClass('mapActive').removeClass('final');
 
       
     } 
     else if(mode == 'final') {
       // last record, rearrange UI
+      
+
+      $('#frame').addClass('final');
       gsap.to('#inset', {
         opacity: 0,
         x: -200,
-        duration: 1
+        duration: tf * 1
       });
       gsap.to('#descriptionHolder', {
         opacity: 0,
         x: 200,
-        duration: 1
+        duration: tf * 1
       });
 
       gsap.to('#tlOuter', {
         opacity: 0,
-        duration: 1
+        duration: tf * 1
       });
       gsap.to('#compassHolder', {
         opacity: 0,
         x: 100,
-        duration: 1
+        duration: tf * 1
       });
       gsap.to('.overview', {
         opacity: 0,
         x: 100,
-        duration: 1
+        duration: tf * 1
       });
       gsap.to('.restart', {
         opacity: 0,
-        duration: 1
+        duration: tf * 1
       });
-      gsap.set('.overviewLabel', {
-        display: 'block',
-        opacity: 0
+
+      gsap.to('#tlYear', {
+        opacity: 0,
+        duration: tf * 1
       });
-      gsap.to('.overviewLabel', {
-        opacity: 1,
-        duration: 2,
-        delay: 3
-      });
+
+      if(tf == 1) {
+        gsap.set('.overviewLabel', {
+          display: 'block',
+          opacity: 0
+        });
+        gsap.to('.overviewLabel', {
+          opacity: 1,
+          duration: tf * 2,
+          delay: tf * 3
+        });
+      } else {
+        window.setTimeout(function() {
+          gsap.set('.overviewLabel', {
+            display: 'block',
+            opacity: 0
+          });
+          gsap.to('.overviewLabel', {
+            opacity: 1,
+            duration: tf * 2,
+            delay: tf * 3
+          });
+        }, 100);
+      }
+      
       gsap.to(m.overviewMat, {
         opacity: 1,
-        duration: 2,
-        delay: 3
+        duration: tf * 2,
+        delay: tf * 3
       });
 
       gsap.set('#overviewFrame, #qrHolder, #overviewTitle, #navOverview', {
@@ -353,15 +335,21 @@ const main = {
 
       gsap.to('#overviewFrame, #qrHolder, #overviewTitle, #navOverview', {
         opacity: 1,
-        duration: 2,
-        delay: 3
+        duration: tf * 2,
+        delay: tf * 3
       });
 
       gsap.to('#tlYear', {
         y: '10vh',
-        duration: 5,
+        duration: tf * 5,
         ease: 'power1.inOut',
         delay: 0
+      });
+
+      gsap.to('.illustrations', {
+        delay: 5,
+        duration: 1,
+        opacity: 1
       });
 
 
@@ -369,6 +357,11 @@ const main = {
     } else if (mode == 'main') {
       // main section
       console.log('setui main');
+      // returning to intro panels
+      gsap.to('.illustrations', {
+        duration: 0.5,
+        opacity: 0
+      });
       gsap.set('#tlOuter, .overview, #tlYear, #mapHeading', {
         display: 'block'
       });
@@ -453,7 +446,20 @@ const main = {
 
       $('#nrs_logo, #frame').addClass('mapActive');
 
+
     } else if (mode == 'initial') {
+
+      gsap.set('#backgroundFill', {
+        display: 'block',
+        opacity: 0
+      });
+      gsap.to('#backgroundFill', {
+        opacity: 1,
+        duration: 1,
+        
+      });
+
+      m._shader.uniforms['uHeatmapVisiblePhase'].value = 0;
 
       // initial map view
       console.log('setui initial');
@@ -494,7 +500,7 @@ const main = {
 
     if(info.year == 1900) info.population = pop.population(1890);
 
-    timeline.scrollTo(info.year);
+    m.timeline.scrollTo(info.year);
 
     if(info.init == 1 || absolute) {
       ui.hideBegin();

@@ -14,14 +14,14 @@ export default  {
                 document.getElementById('historical').innerHTML = data.historical;
 
                 gsap.to('#descriptionHolder', {
-                    'background-color': '#f2eddccc',
+                    'background-color': '#f3f1e9cc',
                     duration: 1
                 });
             }
         });
 
         gsap.to('#descriptionHolder', {
-            'background-color': '#f2eddc00',
+            'background-color': '#f3f1e900',
             duration: 1
         });
 

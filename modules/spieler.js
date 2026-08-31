@@ -420,7 +420,6 @@ const spieler = {
 
 		const url = dataRoot + "/data/spiel/" + id + ".json";
 		$.get(url, function(data) {
-		  console.log('fuck', url);
 		  _this.parse(_this.surname, data);
 		  const o = {};
 		  const names = {};
@@ -436,7 +435,7 @@ const spieler = {
 		  	count++;
 		  }
 		  
-		  if(count < 5 && !debug) {
+		  if(count < 4 && !debug) {
 		  	console.log('narrative data too sparse for ' + _this.surname);
 		  	callback(false);
 		  } else {

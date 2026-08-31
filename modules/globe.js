@@ -11,8 +11,7 @@ const globe = {
 
 	init: function(data, reinit = false) {
 
-    	console.log('init globe');
-		data = data.slice(0, 6 - data.length);
+    	console.log('init globe', data);
 		
 		this.animating = false;
 		this.curIndex = 2;
@@ -47,9 +46,13 @@ const globe = {
 				});
 
 				this.originToArc[data[i].origin] = this.arcsData.length - 1;
+			} else {
+				console.log('already have ' + data[i].origin);
 			}
 			
 		}
+
+		console.log('arcsData', this.arcsData, this.originToArc);
 
 		// console.log(this.arcsData, this.originToArc);
 	  	
@@ -58,7 +61,7 @@ const globe = {
 			this.curIndex = 2;
 		} else {
 			this.g = new Globe(document.getElementById('globeVizInner'))
-	  		    .globeImageUrl('./images/globe-placeholder.jpg') 
+	  		    .globeImageUrl('./images/globe-tex-6000x3000px.jpg') 
 	  		    // .globeImageUrl('./images/earth_equi_hires.jpg')    
 			    .arcsData(this.arcsData)
 			    .arcColor('color')
@@ -72,9 +75,13 @@ const globe = {
 
 			const atGeo = new THREE.SphereGeometry(this.g.getGlobeRadius() + 0.3, 128, 64);
 			this.atMat = new THREE.MeshNormalMaterial({
-				transparent: true,
-				opacity: 1.0
+				transparent: true
 			});
+
+
+			const l = this.g.lights();
+			l[1].intensity = 0;
+			this.g.lights(l);
 			// customising atmosphere shader
 	
 			this.atMat.onBeforeCompile = function ( shader ) {
@@ -89,10 +96,11 @@ const globe = {
 				
 			}	
 			this.atmosphere = new THREE.Mesh(atGeo, this.atMat);
+			this.atmosphere.renderOrder = -100000;
 
 			this.g.scene().add(this.atmosphere);
 
-			this.g.renderer().premultipliedAlpha = true;
+			this.g.renderer().premultipliedAlpha = false;
 
 		} 
 	
@@ -121,10 +129,13 @@ const globe = {
         this.resumeAnimation();
         this.g.resumeAnimation();
         this.animating = true;
-        gsap.set('#globeViz', {
-            display: 'block',
-            opacity: 0
-        });
+        if($('#globeViz').css('display') == 'none') {
+        	gsap.set('#globeViz', {
+	            display: 'block',
+	            opacity: 0
+	        });
+        }
+        
         gsap.to('#globeViz', {
             opacity: 1,
             duration: 0.2
@@ -132,10 +143,18 @@ const globe = {
     },
 
     focus: function() {
+    	
+    	const _this = this;
     	this.animating = false;
     	window.clearInterval(this.animDaemon);
 		delete this.animDaemon;
-		this.g.pointOfView({ lat: -30 + this.center.lat, lng: this.center.lon, altitude: 1.75 }, 2000);
+
+		const pov = this.g.pointOfView();
+		this.g.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: pov.altitude }, 0);
+		window.setTimeout(function() {
+
+			_this.g.pointOfView({ lat: -30 + _this.center.lat, lng: _this.center.lon, altitude: 1.75 }, 2000);
+		}, 10);
 
 		// slide globe up
 		gsap.to([this.atmosphere.position, this.g.scene().children[4].position], {
@@ -145,13 +164,27 @@ const globe = {
 		});
 
 
-		for(let i = 0; i < this.arcsData.length; i++) {
+		/* for(var i in this.arcsData) {
+			console.log(i, this.arcsData[i]);
 			gsap.to(this.arcsData[i].__threeObjArc.children[0].material.uniforms.alpha, { 
 				value: 0.0,
+				delay: 1,
 				duration: 1
 			});
-		}
-		
+		} */
+
+		window.setTimeout(function() {
+			console.log(_this.arcsData.length);
+			for(var i in _this.arcsData) {
+				
+				gsap.to(_this.arcsData[i].__threeObjArc.children[0].material.uniforms.alpha, { 
+					value: 0.0,
+					delay: 0,
+					duration: 1
+				});
+			}
+		}, 1000);
+
     },
 
 	pauseAnimation: function() {
@@ -194,7 +227,7 @@ const globe = {
 		const _this = this;
 
 		const a = this.g.arcsData();
-		
+		console.log(a.length);
 
 		for(var i = 0; i < a.length; i++) {
 			const mat = a[i].__threeObjArc.children[0].material;
@@ -229,8 +262,16 @@ const globe = {
 
 
 		// restore globe to centre
-		this.atmosphere.position.y = 0;
-		this.g.scene().children[4].position.y = 0;
+		if(reinit) {
+			gsap.to([this.atmosphere.position, this.g.scene().children[4].position], {
+				y: 0,
+				duration: 0.5
+			});	
+			
+		} else {
+			this.atmosphere.position.y = 0;
+			this.g.scene().children[4].position.y = 0;
+		}
 
 		// start animation
 		window.setTimeout(function() {
@@ -253,6 +294,8 @@ const globe = {
 			return false;
 
 		}
+
+
 		const _this = this;
 		
 		// go to data el, then iterate
@@ -278,7 +321,18 @@ const globe = {
 			});
 		}
 
-		this.g.pointOfView({ lat: 5 + 0.2 * this.data[this.curIndex].lat, lng: this.data[this.curIndex].lon, altitude: 2.5 }, 1000);
+		let lat = parseFloat(this.data[this.curIndex].lat);
+
+		if(lat >= 0) {
+			lat -= 25;
+		} else {
+			console.log('boink', lat, lat + 40);
+			lat += 25;
+		}
+
+		// lat += 40;
+
+		this.g.pointOfView({ lat: lat, lng: this.data[this.curIndex].lon, altitude: 2.5 }, 1000);
 		this.curIndex++;
 		if(this.curIndex >= this.data.length) {
 			this.curIndex = 0;
