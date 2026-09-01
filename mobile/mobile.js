@@ -70,7 +70,7 @@ const mobile = {
         _this.state.id = data.id;
         _this.state.surname = data.surname;
         _this.state.num_records = data.num_records;
-        ui.ph('surname', _this.state.surname);
+        ui.ph('surname', ui.capitalizeFirstLetter(_this.state.surname.toLowerCase()));
         ui.ph('num_records', _this.state.num_records);
         _this.dReady = true;
 
@@ -112,7 +112,7 @@ const mobile = {
 
     const _this = this;
     // set up response form
-    $('#footer').slideDown(500);
+    // $('#footer').slideDown(500);
 
     $('button.interested').click(function(e){
       e.preventDefault();
@@ -154,7 +154,12 @@ const mobile = {
           _this.populate();
           // m.reset();
 
-          gsap.to('#mapHolder',{
+          gsap.set('#overviewTitle', {
+            display: 'block',
+            opacity: 0
+          });
+
+          gsap.to('#mapHolder, #overviewTitle',{
             opacity: 1,
             duration: 1
           });

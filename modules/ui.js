@@ -29,7 +29,7 @@ export default {
         this.outlier = document.getElementById('outlier');
         this.activeInput = null;
         this.recordThreshold = 500; // names with fewer records than this are excluded from visualisation
-        this.inactivityTimeout = 6000; // seconds
+        this.inactivityTimeout = 180; // seconds
 
         search.init($('#searchName'), $('#searchResults'), this.recordThreshold, function(surname, id, num_records) {
             

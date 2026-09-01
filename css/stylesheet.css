@@ -398,15 +398,14 @@ p#where_instruction {
     bottom:0;
     top:0;
     right:0;
-    background-color:#333;
-    z-index:10000;
-    transform:scale(1.5);
+    background-color:#003543;
+    z-index:1000000;
 }
 #mobile_loading_inner {
     position:relative;
     top:50%;
     font-size:40px;
-    color:white;
+    color: #7b8e88;
     transform:translateY(-50%);
 }
 
@@ -480,9 +479,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #mobile #mapHolder {
-    position:static;
+    position:relative;
     width:100vw;
-    height:100vw;
+    height:200vw;
 }
 
 #mapHolder::before {
@@ -814,6 +813,14 @@ label.overviewLabel:after {
 label.overviewLabel.suppress:after {
     background-color:transparent;
 }
+
+body#mobile {
+    background-color:#003847;
+    background-image:url(../images/bckgrd.jpg);
+    background-size:100%;
+    background-position:top;
+}
+
 #mobile label.overviewLabel:after {
     content: '';
     position:absolute;
@@ -836,6 +843,10 @@ label.overviewLabel:before {
     background-color:#13161b88;
     transform:none;
     border-radius:50%;    
+}
+
+#mobile label.overviewLabel:before {
+    left:107px;
 }
 
 label.landmark.parish.noText {
@@ -1033,6 +1044,34 @@ label.landmark.parish.noText {
     background-position:center top;
 
 }
+#mobile #mapManager {
+    position:relative;
+}
+#mobile #overviewTitle {
+    position:absolute;
+    top:0;
+    left:0;
+    width:auto;
+    height:auto;
+    background:transparent;
+    text-align:left;
+    width:60%;
+    bottom:auto;
+    padding-top:0;
+}
+#mobile #overviewTitle:before,
+#mobile #overviewTitle:after {
+    content:none;
+    display:none;
+}
+#mobile #overviewTitleInner {
+    position:static;
+    top:auto;
+    transform:none;
+}
+#mobile #overviewTitleInner br {
+    display:none;
+}
 #overviewTitleInner {
     position:relative;
     top:50%;
@@ -1047,9 +1086,21 @@ label.landmark.parish.noText {
     margin-left:10%;
     margin-right:10%;
 }
+#mobile #overviewTitle h2 {
+    margin-left:15%;
+    margin-right:0;
+}
 #overviewTitle h3 {
     font-size:20px;
     font-family: 'Constantia Italic';
+}
+#mobile #overviewTitle h3 {
+    display:none;
+}
+
+#mobile #overviewTitle h2 {
+    font-size:20px;
+    margin-top:20vw;
 }
 #overviewTitle:before, #overviewTitle:after {
     content:"";
@@ -1119,7 +1170,6 @@ label.landmark.parish.noText {
     opacity:0;
     z-index:1000;
 }
-
 #popTitle {
     position:absolute;
     font-size: 15px;
@@ -1411,11 +1461,37 @@ p#historical {
     top:6.2vh;
     z-index:1;
 }
+
 #ribbonInner svg {
     width:2000px;
     height:369px;
     transform:scale(0.35);
     transform-origin:0 50%;
+}
+#mobile #ribbon {
+    position:relative;
+    top:auto;
+    left:-1px;
+
+    height:auto;
+    margin-bottom:-100px;
+}
+#mobile #ribbonInner svg {
+    width:90vw;
+    position:absolute;
+    left:0;
+    height:auto;
+    transform:scale(1);
+    transform-origin:0 0;
+}
+#mobile #ribbonInner #crest {
+    width:15.0vw;
+    left:4vw;
+    top:0;
+}
+#mobile #ribbonInner #crest img {
+    width:100%;
+    height:auto;
 }
 #ribbonInner svg text textPath {
     font-size:145px;
@@ -1459,26 +1535,15 @@ p#historical {
     opacity: 0;
 }
 
+
 #mobile #ribbon {
-    margin-bottom:0;
-    width:90%;
-    height:0;
-    padding-bottom:15.5%;
-    background-size:100%;
-    position:relative;
-    margin-top:-20px;
+    opacity:1;
 }
+
 .mobile_entry {
     border-bottom:1px solid #888;
     margin-left:15px;
     margin-right:15px;
-}
-#mobile #ribbonInner {
-    position: relative;
-    top: auto;
-    line-height: 5vw;
-    font-size: 6vw;
-    padding-top: 10%;
 }
 #loading {
     position:absolute;
@@ -1490,12 +1555,74 @@ p#historical {
     color:#13161b;
     width:100%;
 }
-
-#mobile h2 {
-    background-color:#888;
-    color:white;
+#mobile .panels_heading h3 {
+    color:#f3f1e9;
+    padding-top:30px;
+    padding-bottom:30px;
+    position:relative;
+    margin:0;
+    font-size:16px;
+    line-height:18px;
+    margin-top:25px;
+    margin-bottom:35px;
 }
+body#mobile:after {
+    content: '';
+    position:fixed;
+    left:6px;
+    top:6px;
+    right:6px;
+    bottom:6px;
+    border:1px solid #92a09588;
 
+}
+#mobile_content_target,
+#mobile #footer {
+    display:none;
+}
+#mobile_content_target h2 {
+    margin:0;
+    padding:0;
+}
+#mobile #bodyContent {
+    margin-top:-35vw;
+    position:relative;
+    background: linear-gradient(180deg,#d5dcc300 0%, #d5dcc3ff 300px);
+    padding-left:25px;
+    padding-right:25px;
+}
+#bodyContent h1 {
+    font-size:35px;
+    line-height:1.1;
+    margin:0;
+    padding:0;
+    padding-bottom:50px;
+}
+#mobile .panels_heading h3:before {
+    content: '';
+    width:100%;
+    height:20px;
+    position:absolute;
+    background-size:100px;
+    background-repeat:no-repeat;
+    left:0;
+    top:0;
+    background-position:center top;
+    background-image:url(../images/Flourish-detail.png);
+}
+#mobile .panels_heading h3:after {
+    content: '';
+    width:100%;
+    height:20px;
+    position:absolute;
+    background-size:100px;
+    background-repeat:no-repeat;
+    left:0;
+    bottom:0;
+    transform:rotate(180deg);
+    background-position:center top;
+    background-image:url(../images/Flourish-detail.png);
+}
 #qrHolder {
     position: fixed;
     right:0.75vh;
@@ -1599,7 +1726,7 @@ button {
     left:0;
     z-index:1000;
     opacity:0.0;
-    mix-blend-mode:multiply;
+    pointer-events:none;
 }
 .illustration {
     position:absolute;
@@ -1627,7 +1754,6 @@ button {
 .illustration img {
     display:block;
     width:100%;
-    opacity:0.8;
 }
 button.restart, 
 button.overview
@@ -2014,6 +2140,18 @@ input {
     text-align:center;
     margin-top:3vh;
 }
+#mobile .panels_heading h1 img {
+    width:60%;
+    max-width:400px;
+}
+#mobile .panels_heading {
+    margin-top:50px;
+}
+#mobile .panels_heading h2 {
+    font-size:20px;
+    padding:0;
+    margin:0;
+}
 
 h3.previous_visitors_heading,
 h3.first_visitor_heading {
@@ -2021,6 +2159,9 @@ h3.first_visitor_heading {
 }
 #stgiles_logo {
     width:140px;
+}
+#mobile #stgiles_logo {
+    width:100px;
 }
 .bottomPanel.noMargin {
     bottom:5vh;

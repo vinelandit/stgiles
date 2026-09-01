@@ -25,6 +25,7 @@ const m = {
 
     texLoaded: [ null, null, null, null, null],
     overviewGroup: new THREE.Group(),
+    mobileAR: 2,
     // overviewMat: new THREE.LineBasicMaterial( { vertexColors: false, color: new THREE.Color(0x000000), transparent: true } ),
             
 
@@ -149,7 +150,7 @@ const m = {
         this.spherePhase = 0;
 
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(45, window.screen.width / (isMobile ? window.screen.width : window.screen.height), 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(45, window.screen.width / (isMobile ? (window.screen.width * this.mobileAR) : window.screen.height), 0.1, 1000);
 
         if(!isMobile) this.camera.setViewOffset(window.screen.width, window.screen.height, 0, 275, window.screen.width, window.screen.height);
         this.axesHelper = new THREE.AxesHelper(5);
@@ -192,9 +193,10 @@ const m = {
         this.cameraPositionFinal = [0, 77.5, 9.21];
         this.lookAtInit = [0, 0, 9.22];
 
-        this.cameraPositionMobileInit = [0, 40, 11];
-        this.lookAtMobileInit = [0, 0, 10.1];
-        
+        this.cameraPositionMobileInit = [-1, 63, 5];
+        this.lookAtMobileInit = [-1, 0, 5.1];
+        this.cameraPositionMobile = [-1, 63, 5];
+        this.lookAtMobile = [-1, 0, 5.1];
 
 
 
@@ -202,15 +204,13 @@ const m = {
         this.cameraSpinOffsetInit = [0, 0, -5];
 
 
-        this.cameraPositionMobile = [0, 45, 11];
-        this.lookAtMobile = [0, 0, 11.1];
 
         this.rotationMatrix = new THREE.Matrix4();
         this.targetQuaternion = new THREE.Quaternion();
 
         // this.pivotGroup.add(this.camera);
 
-        this.renderer.setSize(window.screen.width, isMobile ? window.screen.width :  window.screen.height);
+        this.renderer.setSize(window.screen.width, isMobile ? (window.screen.width * this.mobileAR) :  window.screen.height);
         this.renderer.sortObjects = true;
 
         this.renderer.outputEncoding = THREE.sRGBEncoding;
@@ -230,8 +230,13 @@ const m = {
 
         mapLoader.load(isMobile ? '../images/sg_tex_col-2_mobile.jpg' : './images/sg_tex_col-1_desat_B.jpg',
             function(tex) {
-                tex.encoding = THREE.sRGBEncoding;
-                tex.colorSpace = THREE.SRGBColorSpace;
+                
+                if(!isMobile) {
+
+                    tex.encoding = THREE.sRGBEncoding;
+                    tex.colorSpace = THREE.SRGBColorSpace;
+
+                }
                 _this.texLoaded[0] = tex;
                 _this.checkTex();
 
@@ -243,7 +248,7 @@ const m = {
 
         const noiseLoader = new THREE.TextureLoader();
 
-        mapLoader.load('./images/noise.png',
+        mapLoader.load((isMobile ? '../' : './') + 'images/noise.png',
             function(tex) {
                 tex.encoding = THREE.sRGBEncoding;
                 tex.colorSpace = THREE.SRGBColorSpace;
@@ -356,7 +361,7 @@ const m = {
 
 
             for (var i in coords) {
-              p.push([ coords[i][1] * 0.25, coords[i][0] ]); // scaling down x because it's more important to thin out than y
+              p.push([ coords[i][1] * 0.23, coords[i][0] ]); // scaling down x because it's more important to thin out than y
               n.push(names[i]);
             }
 
@@ -365,7 +370,7 @@ const m = {
             // Now we can generate our clusters
             const clusters = _this.geodbscan.cluster(p, {
               minPts: 2,
-              epsilon: 10000,
+              epsilon: 15000,
             });
 
             const suppress = [];
@@ -484,7 +489,7 @@ const m = {
             // overview labels
             const pin = new THREE.Group();
 
-            pin.position.set(xy[0] + (this.isMobile ? 18.6 : 0), 0, xy[1]);
+            pin.position.set(xy[0] + (this.isMobile ? 13.1: 0), 0, xy[1]);
             this.overviewGroup.add(pin);
             
             const label = document.createElement('label');
@@ -878,7 +883,7 @@ const m = {
 
             // CSS2D labels
 
-            landmarks.init(this.scene, this.camera, this.project, this.isMobile);
+            landmarks.init(this.scene, this.camera, this.project, this.isMobile, this.mobileAR);
         
             this.spinTarget = landmarks.spinTarget;
 
@@ -1009,7 +1014,7 @@ const m = {
 
             this.materials['untiled'].toneMapping = false;
 
-            const geometry = new THREE.PlaneGeometry(this.dims[0] / this.mapConfig.scale, this.dims[1] / this.mapConfig.scale, parseInt(8 * this.dims[0] / this.mapConfig.scale), parseInt(8 * this.dims[1] / this.mapConfig.scale));
+            const geometry = new THREE.PlaneGeometry(this.dims[0] / this.mapConfig.scale, this.dims[1] / this.mapConfig.scale, parseInt(16 * this.dims[0] / this.mapConfig.scale), parseInt(16 * this.dims[1] / this.mapConfig.scale));
             const plane = new THREE.Mesh(geometry, this.materials['untiled']);
 
             this.geometryGroup.add(plane);

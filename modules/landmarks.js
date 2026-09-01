@@ -7,7 +7,7 @@ const landmarks = {
 	data: [],
 	activeParish: null,
 
-	init: function(scene, camera, project, isMobile) {
+	init: function(scene, camera, project, isMobile, mobileAR) {
 
 		const _this = this;
 
@@ -18,7 +18,7 @@ const landmarks = {
 		this.x1 = 16;
 		this.x2 = 12;
 		this.labelRenderer = new CSS2DRenderer();
-		this.labelRenderer.setSize( window.screen.width, isMobile ? window.screen.width : window.screen.height); // + 200
+		this.labelRenderer.setSize( window.screen.width, isMobile ? (window.screen.width * mobileAR) : window.screen.height); // + 200
 		this.labelRenderer.domElement.style.position = 'absolute';
 		this.labelRenderer.domElement.style['pointer-events'] = 'none';
 

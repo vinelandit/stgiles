@@ -391,7 +391,7 @@ const spieler = {
 		} else if (numExtant > this.data.length / 2) {
 			oFinal.text = `Records end with the ${name} clan in fine fettle: ${numExtant} of the ${this.data.length} main population clusters are still active!`;
 		} else {
-			oFinal.text = `Records end with the ${name} family somewhat diminished: ${numExtant} of the ${this.data.length} main population clusters are still active.`;
+			oFinal.text = `Records end with the ${name} family somewhat diminished: ${numExtant} of the ${this.data.length} main population clusters ${numExtant > 1 ? 'are' : 'is'} still active.`;
 
 		}
 

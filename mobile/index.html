@@ -10,6 +10,7 @@
 				overflow-x:hidden;
 			}
 		</style>
+		<meta name="theme-color" content="#003847" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 	</head>
 	
@@ -17,22 +18,55 @@
 		<div id="mobile_loading">
 			<div id="mobile_loading_inner">Loading...</div>
 		</div>
-		<div id="mapHolder"></div>
-			<h1>Scotland's People</h1>
+		<div id="frameMobile"></div>
+		<div id="content">
+			<div class="panels_heading">
+	       		<img id="stgiles_logo" src="../images/stgiles_logo.png" />
+	       		<h1><img src="../images/title.png" /></h1>
+	        	<h2 class="default_heading">A portal to Scottish ancestry</h2>
+	        	<h3>Digital Souvenir</h3>
+	       	</div>
 			<div id="ribbon">
 				<div id="ribbonInner">
-					<div class="ph_surname"></div>
+					<div id="crest">
+						<img src="../images/Crest-placeholder.png" />
+					</div>
+					<svg viewBox="0 0 2000 369" xmlns="http://www.w3.org/2000/svg">
+								  
+						<image href="../images/Title-Ribbon.png?r=yes" height="369" width="2000" x="0" y="0" />
+					  	<path id="MyPath" stroke="#ffffff" stroke-width="1" fill="none" opacity="1" stroke-linecap="round" stroke-linejoin="round" d="M530,255 C 916,242 1210,153 1504,198" />
+
+					  	<text>
+					  		<textPath href="#MyPath" class="ph_surname"></textPath>
+					  	</text>
+					</svg>
 				</div>
 			</div>
-			<div id="mobile_content_target"></div>
-			<div id="footer">
-				<p>Would you be interested in a high-quality printed poster of this experience?</p>
-				<p>
-					<button class="interested" data-answer="yes">YES</button>
-					<button class="interested" data-answer="no">NO</button>
-				</p>
+			<div id="mapManager">
+				<div id="overviewTitle">
+					<div id="overviewTitleInner">
+						<h2>Overview of records <span class="ph_first_year"></span> - 1900 <br/>with key locations</h2>
+						<h3 class="ph_final_description"></h3>
+					</div>
+				</div>
+				<div id="mapHolder"></div>
 			</div>
-			<div id="footerAnswered">Thank you!</div>
+			
+			<div id="bodyContent">
+				<h1>Full version coming soon!</h1>
+				<div id="mobile_content_target"></div>
+				<div id="footer">
+					<p>Would you be interested in a high-quality printed poster of this experience?</p>
+					<p>
+						<button class="interested" data-answer="yes">YES</button>
+						<button class="interested" data-answer="no">NO</button>
+					</p>
+				</div>
+				<div id="footerAnswered">Thank you!</div>
+			</div>
+			
+			
+		</div>
 		
 
 
